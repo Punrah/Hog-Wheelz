@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_hogpay"
+            android:icon="@drawable/hogpay"
+            android:title="HogPay" />
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@drawable/history"
+            android:title="History" />
+        <item
+            android:id="@+id/nav_favorites"
+            android:icon="@drawable/favorites"
+            android:title="Favorites" />
+        <item
+            android:id="@+id/nav_scheduled"
+            android:icon="@drawable/scheduled"
+            android:title="Scheduled" />
+        <item
+            android:id="@+id/nav_notification"
+            android:icon="@drawable/notifications"
+            android:title="Notifications" />
+        <item
+            android:id="@+id/nav_invite"
+            android:icon="@drawable/invite"
+            android:title="Notifications" />
+        <item
+            android:id="@+id/nav_support"
+            android:icon="@drawable/support"
+            android:title="Support" />
+        <item
+            android:id="@+id/nav_ride"
+            android:icon="@drawable/ride"
+            android:title="Ride with Us" />
+        <item
+            android:id="@+id/nav_rate"
+            android:icon="@drawable/rate"
+            android:title="Rate our App" />
+        <item
+            android:id="@+id/nav_logout"
+            android:title="Logout" />
+    </group>
+</menu>
