@@ -1,5 +1,6 @@
 package com.hogwheelz.userapps.activity;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -25,10 +26,13 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.helper.SQLiteHandler;
 import com.google.android.gms.common.ConnectionResult;
@@ -49,6 +53,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -125,6 +130,9 @@ public class MainActivity extends AppCompatActivity
     TextView textViewDriverPlat;
 
     public static boolean isBookingState;
+
+    Double driverLocationLat[];
+    Double driverLocationLng[];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -513,9 +521,12 @@ public class MainActivity extends AppCompatActivity
             lat = mLastLocation.getLatitude();
             lng = mLastLocation.getLongitude();
             pickUpLatLang = new LatLng(lat, lng);
+
             String pickUpAddress=getAddress(lat,lng);
             pickUpMarker = mMap.addMarker(new MarkerOptions().position(pickUpLatLang).title(pickUpAddress));
             dropOffMarker = mMap.addMarker(new MarkerOptions().position(pickUpLatLang).title(pickUpAddress));
+
+            new getDriverLocation().execute();
             dropOffMarker.setVisible(false);
             setAwal();
             adjustCamera();
@@ -697,6 +708,62 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private class getDriverLocation extends AsyncTask<Void, Void, Void> {
+        @Override
+
+
+
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+        protected Void doInBackground(Void... arg0) {
+
+            HttpHandler sh = new HttpHandler();
+
+            String myLat = String.valueOf(lat);
+            String myLng = String.valueOf(lng);
+            String url = AppConfig.getDriverLocationURL(myLat + "," + myLng);
+
+            String jsonStr = sh.makeServiceCall(url);
+            if (jsonStr != null) {
+                try {
+                    JSONObject jsonObj = new JSONObject(jsonStr);
+                    JSONArray arrayDriverLocation = jsonObj.getJSONArray("records");
+
+                    driverLocationLat= new Double[arrayDriverLocation.length()];
+                    driverLocationLng= new Double[arrayDriverLocation.length()];
+                    for(int i=0;i<arrayDriverLocation.length();i++)
+                    {
+                        JSONObject location=arrayDriverLocation.getJSONObject(i);
+                        driverLocationLat[i] = Double.parseDouble(location.getString("lat_cur").toString());
+                        driverLocationLng[i] = Double.parseDouble(location.getString("long_cur").toString());
+                    }
+
+                } catch (final JSONException e) {
+                    price = "Json parsing error: " + e.getMessage();
+
+                }
+            } else {
+                price = "Couldn't get json from server.";
+            }
+            return null;
+        }
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            Marker driver[]= new Marker[driverLocationLat.length];
+            for(int i=0;i<driverLocationLat.length;i++) {
+                driver[i] = mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
+            }
+
+            // Dismiss the progress dialog
+
+        }
+    }
+
 
     private void adjustCamera()
     {
@@ -731,4 +798,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         bookingLayoutState();
     }
+
+
+
 }

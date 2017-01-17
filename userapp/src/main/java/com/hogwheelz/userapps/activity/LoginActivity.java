@@ -186,6 +186,8 @@ public class LoginActivity extends Activity {
                 String regId = pref.getString("regId", null);
                 params.put("regid", regId);
 
+                Log.e(TAG, "sendRegistrationToServer: " + regId);
+
                 return params;
             }
 

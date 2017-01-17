@@ -13,4 +13,11 @@ public class AppConfig {
 	{
 		return "http://primagsm.com/hogwheelz/cms/modul/order/action.php?aksi=request_price&origins="+origins+"&destinations="+destinations;
 	}
+
+	public static String getDriverLocationURL(String location)
+	{
+		return "http://primagsm.com/hogwheelz/cms/modul/order/action.php?aksi=send_loc_driver&loc="+location;
+	}
+
+
 }
