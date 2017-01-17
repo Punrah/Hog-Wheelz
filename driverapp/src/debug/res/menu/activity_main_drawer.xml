@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_transaction_history"
+            android:title="Transaction History" />
+        <item
+            android:id="@+id/nav_deposit"
+            android:title="Deposit Hogwheelz" />
+        <item
+            android:id="@+id/nav_withdraw"
+            android:title="Withdraw" />
+
+        <item
+            android:id="@+id/nav_performa"
+            android:title="Performa" />
+        <item
+            android:id="@+id/nav_rating"
+            android:title="Rating" />
+        <item
+            android:id="@+id/nav_booking"
+            android:title="Booking" />
+        <item
+            android:id="@+id/nav_inbox"
+            android:title="Inbox" />
+        <item
+            android:id="@+id/nav_history"
+            android:title="History" />
+        <item
+            android:id="@+id/nav_message"
+            android:title="Message" />
+        <item
+            android:id="@+id/nav_aggrement"
+            android:title="Aggrement" />
+        <item
+            android:id="@+id/nav_version"
+            android:title="Version" />
+        <item
+            android:id="@+id/nav_autobid"
+            android:title="Autobid" />
+    </group>
+
+</menu>
