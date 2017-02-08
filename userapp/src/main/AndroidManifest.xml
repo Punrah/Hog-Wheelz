@@ -30,6 +30,9 @@
             android:name=".activity.MainActivity"
             android:label="Hog Wheelz" />
         <activity
+            android:name=".activity.HogwheelzActivity"
+            android:label="Hog Wheelz" />
+        <activity
             android:name=".activity.RegisterActivity"
             android:label="Hog Wheelz" />
         <!--
@@ -45,6 +48,7 @@
             android:value="@string/google_maps_key" />
 
         <activity android:name=".activity.BookingActivity" />
+        <activity android:name=".activity.WaitingDriverActivity" />
 
         <!-- Firebase Notifications -->
         <service
@@ -62,8 +66,13 @@
             </intent-filter>
         </service>
         <!-- ./Firebase Notifications -->
-        <activity android:name=".activity.DriverActivity"
-            android:theme="@style/Theme.AppCompat.Dialog"></activity>
+        <activity
+            android:name=".activity.DriverActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            />
+        <activity
+            android:name=".activity.HogrideActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

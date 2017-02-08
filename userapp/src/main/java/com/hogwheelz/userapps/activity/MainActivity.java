@@ -1,6 +1,5 @@
 package com.hogwheelz.userapps.activity;
 
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -26,15 +25,13 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.helper.SQLiteHandler;
+import com.hogwheelz.userapps.helper.UserSQLiteHandler;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -66,14 +63,17 @@ import com.hogwheelz.userapps.R;
 
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.helper.SessionManager;
+import com.hogwheelz.userapps.persistence.User;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private View navHeader;
     private TextView txtName, txtUsername;
-    private SQLiteHandler db;
+    private UserSQLiteHandler db;
     private SessionManager session;
 
     public static String username;
@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity
     TextView textViewDriverPhone;
     TextView textViewDriverPlat;
 
-    public static boolean isBookingState;
 
     Double driverLocationLat[];
     Double driverLocationLng[];
@@ -154,7 +153,7 @@ public class MainActivity extends AppCompatActivity
         txtName = (TextView) navHeader.findViewById(R.id.name);
         txtUsername = (TextView) navHeader.findViewById(R.id.username);
 
-        db = new SQLiteHandler(getApplicationContext());
+        db = new UserSQLiteHandler(getApplicationContext());
 
         // session manager
         session = new SessionManager(getApplicationContext());
@@ -164,11 +163,11 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Fetching user details from SQLite
-        HashMap<String, String> user = db.getUserDetails();
+        User user = db.getUserDetails();
 
-        username = user.get("email");
-        name = user.get("name");
-        idCustomer = user.get("id_customer");
+        username = user.username;
+        name = user.name;
+        idCustomer = user.idCustomer;
         //Displaying the user details on the screen
         txtUsername.setText(username);
         txtName.setText(name);
@@ -250,34 +249,20 @@ public class MainActivity extends AppCompatActivity
         hogButtonFlag=HOGRIDE;
         hogRadioButtonLikeFuction();
 
-        preBooking= (LinearLayout) findViewById(R.id.prebooking);
+        preBooking= (LinearLayout) findViewById(R.id.order);
         pastBooking= (LinearLayout) findViewById(R.id.pastbooking);
 
         linearLayoutAddress = (LinearLayout) findViewById(R.id.address);
 
         textViewDriverName=(TextView) findViewById(R.id.driver_name);
-        textViewDriverPhone=(TextView) findViewById(R.id.driver_phone);
-        textViewDriverPlat=(TextView) findViewById(R.id.driver_plat);
-
-        isBookingState=true;
 
         initAnimation();
 
+
+
     }
 
-    private void bookingLayoutState()
-    {
-        if(isBookingState)
-        {
-            preBooking.setVisibility(View.VISIBLE);
-            pastBooking.setVisibility(View.INVISIBLE);
-        }
-        else if(!isBookingState)
-        {
-            preBooking.setVisibility(View.INVISIBLE);
-            pastBooking.setVisibility(View.VISIBLE);
-        }
-    }
+
 
 
     private void initAnimation()
@@ -324,26 +309,13 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_hogpay) {
-            // Handle the camera action
-        } else if (id == R.id.nav_history) {
+        if (id == R.id.nav_logout) {
 
-        } else if (id == R.id.nav_favorites) {
-
-        } else if (id == R.id.nav_scheduled) {
-
-        } else if (id == R.id.nav_notification) {
-
-        } else if (id == R.id.nav_invite) {
-
-        } else if (id == R.id.nav_support) {
-
-        } else if (id == R.id.nav_ride) {
-
-        } else if (id == R.id.nav_rate) {
-
-        }else if (id == R.id.nav_logout) {
-        logoutUser();
+            logoutUser();
+        }
+        else
+        {
+            NavItemSelector.navSelected(id,this);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -418,13 +390,13 @@ public class MainActivity extends AppCompatActivity
 
 // Set an EditText view to get user input
         final EditText input = new EditText(this);
-        input.setText(textViewNote.getText());
+        input.setText(textViewNote.getText().toString());
         alert.setView(input);
 
 
         alert.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                textViewNote.setText(input.getText());
+                textViewNote.setText(input.getText().toString());
                 // Do something with value!
             }
         });
@@ -625,21 +597,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        else if (requestCode == RESULT_DRIVER) {
-            if (resultCode == RESULT_OK) {
-                String name=data.getStringExtra("name");
-                String phone=data.getStringExtra("phone");
-                String plat=data.getStringExtra("plat");
-                textViewDriverName.setText(name);
-                textViewDriverPhone.setText(phone);
-                textViewDriverPlat.setText(plat);
-
-                linearLayoutAddress.setVisibility(View.INVISIBLE);
-
-            } else
-                Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
-            }
-
     }
 
     private class calculatePrice extends AsyncTask<Void, Void, Void> {
@@ -796,8 +753,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        bookingLayoutState();
     }
+
+
+
+
 
 
 

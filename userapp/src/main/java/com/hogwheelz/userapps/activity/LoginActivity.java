@@ -22,7 +22,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Config;
-import com.hogwheelz.userapps.helper.SQLiteHandler;
+import com.hogwheelz.userapps.helper.UserSQLiteHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +34,7 @@ import com.hogwheelz.userapps.R;
 
 import com.hogwheelz.userapps.app.AppController;
 import com.hogwheelz.userapps.helper.SessionManager;
+import com.hogwheelz.userapps.persistence.User;
 
 public class LoginActivity extends Activity {
     private static final String TAG = LoginActivity.class.getSimpleName();
@@ -43,7 +44,7 @@ public class LoginActivity extends Activity {
     private EditText inputPassword;
     private ProgressDialog pDialog;
     private SessionManager session;
-    private SQLiteHandler db;
+    private UserSQLiteHandler db;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class LoginActivity extends Activity {
         pDialog.setCancelable(false);
 
         // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
+        db = new UserSQLiteHandler(getApplicationContext());
 
         // Session manager
         session = new SessionManager(getApplicationContext());
@@ -68,7 +69,7 @@ public class LoginActivity extends Activity {
         // Check if user is already logged in or not
         if (session.isLoggedIn()) {
             // User is already logged in. Take him to main activity
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            Intent intent = new Intent(LoginActivity.this, HogwheelzActivity.class);
             startActivity(intent);
             finish();
         }
@@ -136,17 +137,19 @@ public class LoginActivity extends Activity {
                         session.setLogin(true);
 
                         // Now store the user in SQLite
-                        String phone = jObj.getString("phone");
-                        String name = jObj.getString("name");
-                        String email = jObj.getString("email");
-                        String idCustomer=jObj.getString("id_customer");
+
+                        User user = new User();
+                        user.phone = jObj.getString("phone");
+                        user.name = jObj.getString("name");
+                        user.username = jObj.getString("email");
+                        user.idCustomer=jObj.getString("id_customer");
 
                         // Inserting row in users table
-                        db.addUser(idCustomer, name, email, phone);
+                        db.addUser(user);
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
-                                MainActivity.class);
+                                HogwheelzActivity.class);
                         startActivity(intent);
                         finish();
                     } else {

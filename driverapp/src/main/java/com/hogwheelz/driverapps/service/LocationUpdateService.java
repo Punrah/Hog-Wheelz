@@ -134,8 +134,6 @@ public class LocationUpdateService extends Service implements
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         updateUI();
-        Toast.makeText(this, idDriver,
-                  Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -176,8 +174,6 @@ public class LocationUpdateService extends Service implements
      */
     private void updateUI() {
         setLocationData();
-        Toast.makeText(this, "Latitude: =" + mCurrentLocation.getLatitude() + " Longitude:=" + mCurrentLocation
-                  .getLongitude(), Toast.LENGTH_SHORT).show();
         Log.d(TAG, "Latitude:==" + mCurrentLocation.getLatitude() + "\n Longitude:==" + mCurrentLocation.getLongitude
                   ());
         String lat=Double.toString(mCurrentLocation.getLatitude());
@@ -253,7 +249,6 @@ public class LocationUpdateService extends Service implements
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
         stopLocationUpdates();
         super.onDestroy();
 
@@ -265,7 +260,7 @@ public class LocationUpdateService extends Service implements
      * */
     private void updateLoc(final String idDriver, final String lat, final String lng) {
         // Tag used to cancel the request
-        String tag_string_req = "req_login";
+        String tag_string_req = "update_loc";
 
 
         StringRequest strReq = new StringRequest(Method.POST,
@@ -283,9 +278,7 @@ public class LocationUpdateService extends Service implements
                     if (status.contentEquals("1")) {
                         // user successfully logged in
                         // Create login session
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
+                        String msg = jObj.getString("msg");
                     } else {
                         // Error in login. Get the error message
 

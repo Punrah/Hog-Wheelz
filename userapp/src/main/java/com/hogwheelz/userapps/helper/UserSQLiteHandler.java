@@ -12,11 +12,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.hogwheelz.userapps.persistence.User;
+
 import java.util.HashMap;
 
-public class SQLiteHandler extends SQLiteOpenHelper {
+public class UserSQLiteHandler extends SQLiteOpenHelper {
 
-	private static final String TAG = SQLiteHandler.class.getSimpleName();
+	private static final String TAG = UserSQLiteHandler.class.getSimpleName();
 
 	// All Static variables
 	// Database Version
@@ -34,7 +36,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 	private static final String KEY_EMAIL = "email";
 	private static final String KEY_PHONE = "phone";
 
-	public SQLiteHandler(Context context) {
+	public UserSQLiteHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 
@@ -62,14 +64,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 	/**
 	 * Storing user details in database
 	 * */
-	public void addUser(String customer_id, String name, String email, String phone) {
+	public void addUser(User user) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
-		values.put(KEY_ID,customer_id);
-		values.put(KEY_NAME, name); // Name
-		values.put(KEY_EMAIL, email); // Email
-		values.put(KEY_PHONE, phone); // Phone
+		values.put(KEY_ID,user.idCustomer);
+		values.put(KEY_NAME, user.name); // Name
+		values.put(KEY_EMAIL, user.username); // Email
+		values.put(KEY_PHONE, user.phone); // Phone
 
 		// Inserting Row
 		long id = db.insert(TABLE_USER, null, values);
@@ -81,8 +83,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 	/**
 	 * Getting user data from database
 	 * */
-	public HashMap<String, String> getUserDetails() {
-		HashMap<String, String> user = new HashMap<String, String>();
+	public User getUserDetails() {
+		User user = new User();
 		String selectQuery = "SELECT  * FROM " + TABLE_USER;
 
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -90,10 +92,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 		// Move to first row
 		cursor.moveToFirst();
 		if (cursor.getCount() > 0) {
-			user.put("id_customer", cursor.getString(cursor.getColumnIndex(KEY_ID)));
-			user.put("name", cursor.getString(cursor.getColumnIndex(KEY_NAME)));
-			user.put("email", cursor.getString(cursor.getColumnIndex(KEY_EMAIL)));
-			user.put("phone", cursor.getString(cursor.getColumnIndex(KEY_PHONE)));
+			user.idCustomer=cursor.getString(cursor.getColumnIndex(KEY_ID));
+			user.name=cursor.getString(cursor.getColumnIndex(KEY_NAME));
+			user.username=cursor.getString(cursor.getColumnIndex(KEY_EMAIL));
+			user.phone=cursor.getString(cursor.getColumnIndex(KEY_PHONE));
 		}
 		cursor.close();
 		db.close();

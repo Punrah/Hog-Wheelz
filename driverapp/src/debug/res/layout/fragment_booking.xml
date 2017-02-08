@@ -3,10 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.hogwheelz.driverapps.fragment.BookingFragment">
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
     <android.support.v7.widget.AppCompatTextView
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:text="booking"/>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </ListView>
+</LinearLayout>
 
 </FrameLayout>

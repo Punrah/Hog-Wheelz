@@ -48,6 +48,7 @@ import com.hogwheelz.driverapps.util.NotificationUtils;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static String idDriver="1480997953";
     private NavigationView navigationView;
     private DrawerLayout drawer;
     private View navHeader;
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Navigation view header
         navHeader = navigationView.getHeaderView(0);
-        txtName = (TextView) navHeader.findViewById(R.id.name);
+        txtName = (TextView) navHeader.findViewById(R.id.destination);
         txtWebsite = (TextView) navHeader.findViewById(R.id.website);
         imgNavHeaderBg = (ImageView) navHeader.findViewById(R.id.img_header_bg);
         imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             navItemIndex = 0;
-            CURRENT_TAG = TAG_BOOKING;
+            CURRENT_TAG = TAG_TRANSACTION_HISTORY;
             loadHomeFragment();
         }
 
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 AutobidFragment autobidFragment = new AutobidFragment();
                 return autobidFragment;
             default:
-                return new BookingFragment();
+                return new TransactionHistoryFragment();
         }
     }
 
@@ -360,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
                         CURRENT_TAG = TAG_AUTOBID;
                         break;
                     default:
-                        navItemIndex = 5;
+                        navItemIndex = 0;
                 }
 
                 //Checking if the item is in checked state or not, if not make it in checked state
@@ -414,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
             // rather than home
             if (navItemIndex != 0) {
                 navItemIndex = 0;
-                CURRENT_TAG = TAG_BOOKING;
+                CURRENT_TAG = TAG_TRANSACTION_HISTORY;
                 loadHomeFragment();
                 return;
             }
@@ -496,7 +497,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
             Intent intent = new Intent(this, LocationUpdateService.class);
-            intent.putExtra("id_driver", "1480997953");
+            intent.putExtra("id_driver", idDriver);
             startService(intent);
 
     }
