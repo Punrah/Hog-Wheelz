@@ -1,17 +1,17 @@
 package com.hogwheelz.driverapps.service;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hogwheelz.driverapps.activity.HomeActivity;
-import com.hogwheelz.driverapps.app.Config;
-import com.hogwheelz.driverapps.util.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.hogwheelz.driverapps.activity.FindOrderDetailActivity;
+import com.hogwheelz.driverapps.activity.MainActivity;
+import com.hogwheelz.driverapps.app.Config;
+import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +50,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 Log.e(TAG, "Exception: " + e.getMessage());
             }
         }
-
     }
 
     private void handleNotification(String message) {
@@ -58,7 +57,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             // app is in foreground, broadcast the push message
             Intent pushNotification = new Intent(Config.PUSH_NOTIFICATION);
             pushNotification.putExtra("message", message);
-            pushNotification.putExtra("notif","false");
             LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
 
 
@@ -95,6 +93,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 // app is in foreground, broadcast the push message
                 Intent pushNotification = new Intent(Config.PUSH_NOTIFICATION);
                 pushNotification.putExtra("message", message);
+                pushNotification.putExtra("payload",payload.toString());
                 LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
 
                 // play notification sound
@@ -102,9 +101,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 notificationUtils.playNotificationSound();
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), HomeActivity.class);
+                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
                 resultIntent.putExtra("message", message);
-
+                JSONObject jsonPayload = new JSONObject(payload.toString());
+                String idOrder=jsonPayload.getString("id_order");
+                resultIntent.putExtra("id_order",idOrder);
                 // check for image attachment
                 if (TextUtils.isEmpty(imageUrl)) {
                     showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);

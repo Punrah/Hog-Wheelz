@@ -5,32 +5,9 @@ package com.hogwheelz.driverapps.persistence;
  */
 
 public class User {
-    private static String name;
-    private static String Username;
-    private static String Phone;
+    public   String name;
+    public   String Username;
+    public   String Phone;
 
 
-    public static String getName() {
-        return name;
-    }
-
-    public static void setName(String name) {
-        User.name = name;
-    }
-
-    public static String getUsername() {
-        return Username;
-    }
-
-    public static void setUsername(String username) {
-        Username = username;
-    }
-
-    public static String getPhone() {
-        return Phone;
-    }
-
-    public static void setPhone(String phone) {
-        Phone = phone;
-    }
 }

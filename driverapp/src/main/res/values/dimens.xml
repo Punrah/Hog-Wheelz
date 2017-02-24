@@ -10,9 +10,8 @@
     <dimen name="profile_width">75dp</dimen>
     <dimen name="profile_height">75dp</dimen>
 
-
-    <dimen name="default_text_size">16sp</dimen>
-    <dimen name="ui_group_top_margin">24dp</dimen>
-
-    <dimen v="small_margin">10dp</dimen>
+    <dimen name="tab_max_width">264dp</dimen>
+    <dimen name="tab_padding_bottom">16dp</dimen>
+    <dimen name="tab_label">14sp</dimen>
+    <dimen name="custom_tab_layout_height">72dp</dimen>
 </resources>

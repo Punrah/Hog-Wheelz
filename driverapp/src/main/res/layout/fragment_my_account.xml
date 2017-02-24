@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.hogwheelz.driverapps.fragment.MyAccountFragment">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="left"
+            android:textSize="24dp"
+            android:text="name"
+            android:id="@+id/name"/>
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="left"
+            android:textSize="24dp"
+            android:text="username"
+            android:id="@+id/username"/>
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="left"
+            android:textSize="24dp"
+            android:text="phone"
+            android:id="@+id/phone"/>
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="left"
+            android:textSize="24dp"
+            android:text="phone"
+            android:id="@+id/plat"/>
+    </LinearLayout>
+
+
+
+</RelativeLayout>

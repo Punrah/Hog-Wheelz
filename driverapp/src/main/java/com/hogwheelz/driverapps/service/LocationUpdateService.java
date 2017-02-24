@@ -1,12 +1,18 @@
 package com.hogwheelz.driverapps.service;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -82,6 +88,7 @@ public class LocationUpdateService extends Service implements
     protected Location mCurrentLocation;
     public static boolean isEnded = false;
     private ArrayList<LocationVo> mLocationData;
+
 
 
     @Override
@@ -221,13 +228,20 @@ public class LocationUpdateService extends Service implements
         if (!mRequestingLocationUpdates) {
             mRequestingLocationUpdates = true;
 
-            // The final argument to {@code requestLocationUpdates()} is a LocationListener
-            // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                      mGoogleApiClient, mLocationRequest, this);
-            Log.i(TAG, " startLocationUpdates===");
-            isEnded = true;
+            getMyLocation();
         }
+    }
+
+
+
+    private void getMyLocation()
+    {
+        // The final argument to {@code requestLocationUpdates()} is a LocationListener
+        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+        Log.i(TAG, " startLocationUpdates===");
+        isEnded = true;
     }
 
     /**

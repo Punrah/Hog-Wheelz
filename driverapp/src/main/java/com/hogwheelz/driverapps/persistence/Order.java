@@ -1,138 +1,101 @@
 package com.hogwheelz.driverapps.persistence;
 
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.maps.model.LatLng;
+
+import java.io.Serializable;
+
 /**
- * Created by clive on 08-Jun-16.
+ * Created by Startup on 2/1/17.
  */
-public class Order {
 
+public  class Order implements Serializable{
 
-    private String destinationAddress;
-    private String destinationLat;
-    private String destinationLng;
-    private String distance;
-    private String orderId;
-    private String orderType;
-    private String originAddress;
-    private String originLat;
-    private String originLng;
-    private String price;
-    private String note;
-
-    public  Order( String destinationAddress,
-                   String destinationLat,
-                   String destinationLng,
-                   String distance,
-                   String orderId,
-                   String orderType,
-                   String originAddress,
-                   String originLat,
-                   String originLng,
-                   String price,
-                   String note)
-    {
-        this.setDestinationAddress(destinationAddress);
-        this.setDestinationLat(destinationLat);
-                this.setDestinationLng(destinationLng);
-                this.setDistance(distance);
-                this.setOrderId(orderId);
-                this.setOrderType(orderType);
-                this.setOriginAddress(originAddress);
-                this.setOriginLat(originLat);
-                this.setOriginLng(originLng);
-                this.setPrice(price);
-                this.setNote(note);
-
-    }
+    public User user;
+    public String id_order;
+    public String orderDate;
+    public int price;
+    public double distance;
+    public LatLng pickupPosition;
+    public LatLng dropoofPosition;
+    public String pickupAddress;
+    public String dropoffAddress;
+    public Driver driver;
+    public String pickupNote="";
+    public String dropoffNote="";
+    public String status;
+    public int orderType;
 
     public Order()
-    {}
-
-
-    public String getDestinationAddress() {
-        return destinationAddress;
+    {
+        user = new User();
+        id_order="";
+        orderDate="";
+        price=0;
+        distance=0;
+        pickupPosition = new LatLng(0,0);
+        dropoofPosition=new LatLng(0,0);
+        pickupAddress="";
+        dropoffAddress="";
+        driver = new Driver();
+        pickupNote="";
+        dropoffNote="";
+        status="";
+        orderType=0;
     }
 
-    public void setDestinationAddress(String destinationAddress) {
-        this.destinationAddress = destinationAddress;
+
+
+    public void setPrice(String priceString)
+    {
+        price=Integer.parseInt(priceString);
+    }
+    public String getPriceString() {
+        return String.valueOf(price);
+    }
+    public String getDistanceString() {
+        return String.valueOf(distance);
+    }
+    public String getPickupLatString() {
+        return String.valueOf(pickupPosition.latitude);
     }
 
-    public String getDestinationLat() {
-        return destinationLat;
+    public String getPickupLngString() {
+        return String.valueOf(pickupPosition.longitude);
     }
 
-    public void setDestinationLat(String destinationLat) {
-        this.destinationLat = destinationLat;
+    public String getDropoffLatString() {
+        return String.valueOf(dropoofPosition.latitude);
     }
 
-    public String getDestinationLng() {
-        return destinationLng;
+    public String getDropoffLngString() {
+        return String.valueOf(dropoofPosition.longitude);
     }
 
-    public void setDestinationLng(String destinationLng) {
-        this.destinationLng = destinationLng;
+    public String getPickupNoteString()
+    {
+
+            return pickupNote;
+
+    }
+    public String getDropoffNoteString()
+    {
+
+            return dropoffNote;
+
     }
 
-    public String getDistance() {
-        return distance;
+
+    public void setPickupPlace(Place place)
+    {
+        pickupPosition=place.getLatLng();
+        pickupAddress=place.getName().toString();
     }
 
-    public void setDistance(String distance) {
-        this.distance = distance;
+    public void setDropoffPlace(Place place)
+    {
+        dropoofPosition=place.getLatLng();
+        dropoffAddress=place.getName().toString();
     }
 
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
-
-    public String getOrderType() {
-        return orderType;
-    }
-
-    public void setOrderType(String orderType) {
-        this.orderType = orderType;
-    }
-
-    public String getOriginAddress() {
-        return originAddress;
-    }
-
-    public void setOriginAddress(String originAddress) {
-        this.originAddress = originAddress;
-    }
-
-    public String getOriginLat() {
-        return originLat;
-    }
-
-    public void setOriginLat(String originLat) {
-        this.originLat = originLat;
-    }
-
-    public String getOriginLng() {
-        return originLng;
-    }
-
-    public void setOriginLng(String originLng) {
-        this.originLng = originLng;
-    }
-
-    public String getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
 }
