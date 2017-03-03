@@ -6,9 +6,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hogwheelz.userapps.activity.BookingActivity;
-import com.hogwheelz.userapps.activity.DriverActivity;
 import com.hogwheelz.userapps.activity.MainActivity;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
 import com.hogwheelz.userapps.app.Config;
 import com.hogwheelz.userapps.util.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -103,9 +102,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 notificationUtils.playNotificationSound();
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), BookingActivity.class);
+                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
                 resultIntent.putExtra("message", message);
-                resultIntent.putExtra("payload",payload.toString());
+                JSONObject jsonPayload = new JSONObject(payload.toString());
+                String idOrder=jsonPayload.getString("id_order");
+                resultIntent.putExtra("id_order",idOrder);
 
                 // check for image attachment
                 if (TextUtils.isEmpty(imageUrl)) {

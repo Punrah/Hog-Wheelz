@@ -1,4 +1,4 @@
-package com.hogwheelz.userapps.helper;
+package com.hogwheelz.userapps.activity.adapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,12 +18,12 @@ import java.util.List;
 /**
  * Created by Ravi on 13/05/15.
  */
-public class HistoryProgressSwipeListAdapter extends BaseAdapter {
+public class HistorySwipeListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;
     private List<Order> orderList;
 
-    public HistoryProgressSwipeListAdapter(Activity activity, List<Order> orderList) {
+    public HistorySwipeListAdapter(Activity activity, List<Order> orderList) {
         this.activity = activity;
         this.orderList = orderList;
     }

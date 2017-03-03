@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Created by Startup on 1/31/17.
  */
 
-public class OrderRide extends Order implements Serializable{
+public class OrderRide extends Order {
 
 
 

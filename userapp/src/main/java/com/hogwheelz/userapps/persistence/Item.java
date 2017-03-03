@@ -1,0 +1,70 @@
+package com.hogwheelz.userapps.persistence;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by Startup on 2/10/17.
+ */
+
+public class Item implements Parcelable {
+
+    public String idItem;
+    public String name;
+    public String restaurantName;
+    public String description;
+    public int price;
+    public String photo;
+
+    public Item()
+    {
+        idItem="";
+        name="";
+        restaurantName="";
+        photo="";
+        price=0;
+        description="";
+    }
+
+    public String getPriceString()
+    {
+        return String.valueOf(price);
+    }
+
+    public static final Parcelable.Creator<Item> CREATOR = new Creator<Item>() {
+        public Item createFromParcel(Parcel source) {
+            Item item = new Item();
+            item.idItem = source.readString();
+            item.name = source.readString();
+            item.restaurantName = source.readString();
+            item.description=source.readString();
+            item.photo=source.readString();
+            item.price=source.readInt();
+
+            return item;
+        }
+        public Item[] newArray(int size) {
+            return new Item[size];
+        }
+    };
+
+    public int describeContents() {
+        return 0;
+    }
+
+
+    public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeString(idItem);
+        parcel.writeString(name);
+        parcel.writeString(restaurantName);
+        parcel.writeString(description);
+        parcel.writeString(photo);
+        parcel.writeInt(price);
+    }
+
+}

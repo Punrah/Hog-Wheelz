@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.HogwheelzActivity;
 
 import java.util.ArrayList;
 import java.util.List;

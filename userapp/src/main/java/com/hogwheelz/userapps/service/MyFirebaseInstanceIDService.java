@@ -9,6 +9,7 @@ import com.hogwheelz.userapps.activity.MainActivity;
 import com.hogwheelz.userapps.app.Config;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
+import com.hogwheelz.userapps.persistence.UserGlobal;
 
 /**
  * Created by Ravi Tamada on 08/08/16.
@@ -36,7 +37,7 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
 
     private void sendRegistrationToServer(final String token) {
         // sending gcm token to server
-        Log.e(TAG, "username: " + MainActivity.username);
+        Log.e(TAG, "username: " + UserGlobal.getUser(getApplicationContext()).username);
         Log.e(TAG, "sendRegistrationToServer: " + token);
 
 

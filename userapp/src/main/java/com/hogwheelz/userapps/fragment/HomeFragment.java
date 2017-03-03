@@ -7,17 +7,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.BookingActivity;
-import com.hogwheelz.userapps.activity.HogrideActivity;
+import com.hogwheelz.userapps.activity.hogFood.FoodActivity;
+import com.hogwheelz.userapps.activity.makeOrder.MakeOrderRideActivity;
+import com.hogwheelz.userapps.activity.makeOrder.MakeOrderSendActivity;
 
 
 public class HomeFragment extends Fragment {
 
     private Button buttonHogRide;
+    private Button buttonHogSend;
+    private Button buttonHogFood;
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -33,11 +34,29 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
     View myInflater =inflater.inflate(R.layout.fragment_home, container, false);
         buttonHogRide =(Button) myInflater.findViewById(R.id.button_hogride);
+        buttonHogSend =(Button) myInflater.findViewById(R.id.button_hogsend);
+        buttonHogFood =(Button) myInflater.findViewById(R.id.button_hogfood);
 
         buttonHogRide.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                Intent i = new Intent(getActivity(), HogrideActivity.class);
+                Intent i = new Intent(getActivity(), MakeOrderRideActivity.class);
+                startActivity(i);
+            }
+
+        });
+        buttonHogSend.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                Intent i = new Intent(getActivity(), MakeOrderSendActivity.class);
+                startActivity(i);
+            }
+
+        });
+        buttonHogFood.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                Intent i = new Intent(getActivity(), FoodActivity.class);
                 startActivity(i);
             }
 

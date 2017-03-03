@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends NotifActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,26 +87,19 @@ public class MainActivity extends AppCompatActivity {
             logoutUser();
         }
 
+    }
 
+    @Override
+    public void openOrderActivity() {
+        if(orderType==1) {
+            Intent i = new Intent(this, ViewOrderActivity.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
+        }
+        else if (orderType==2)
+        {
 
-
-
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-
-               if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
-                    // new push notification is received
-                   String msg=intent.getStringExtra("message");
-                   Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-               }
-            }
-
-        };
-
-
-
-
+        }
     }
 
     @Override
@@ -179,22 +171,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(Config.PUSH_NOTIFICATION));
-        // clear the notification area when the app is opened
-        NotificationUtils.clearNotifications(getApplicationContext());
-
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        super.onPause();
-    }
 
     /**
      * Adding custom view to tab

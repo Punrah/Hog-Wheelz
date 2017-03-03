@@ -1,66 +1,67 @@
 package com.hogwheelz.userapps.fragment;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListAdapter;
+import android.view.animation.AlphaAnimation;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.FindDriverActivity;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderRide;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderSend;
+import com.hogwheelz.userapps.activity.makeOrder.MakeOrderRideActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.AppController;
-import com.hogwheelz.userapps.helper.HistoryProgressSwipeListAdapter;
+import com.hogwheelz.userapps.activity.adapter.HistorySwipeListAdapter;
+import com.hogwheelz.userapps.app.Config;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.Order;
 import com.hogwheelz.userapps.persistence.UserGlobal;
+import android.view.animation.Animation;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 
-public class HistoryProgressFragment extends Fragment  implements SwipeRefreshLayout.OnRefreshListener{
 
+public class HistoryProgressFragment extends  HistoryFragmentUp  implements SwipeRefreshLayout.OnRefreshListener{
     private String TAG = HistoryProgressFragment.class.getSimpleName();
-    private ProgressDialog pDialog;
-    private ListView listView;
-    private SwipeRefreshLayout swipeRefreshLayout;
 
-    // URL to get contacts JSON
-    private static String url;
-
-    ArrayList<HashMap<String, String>> dataList;
-    private HistoryProgressSwipeListAdapter adapter;
-
-    private List<Order> orderList;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View myInflate=inflater.inflate(R.layout.fragment_history_progress, container, false);
-
-
         listView = (ListView) myInflate.findViewById(R.id.list_history_progress);
         swipeRefreshLayout = (SwipeRefreshLayout) myInflate.findViewById(R.id.swipe_refresh_layout);
-
         swipeRefreshLayout.setOnRefreshListener(this);
 
         /**
@@ -76,22 +77,12 @@ public class HistoryProgressFragment extends Fragment  implements SwipeRefreshLa
                                     }
                                 }
         );
-
         return myInflate;
     }
 
-    @Override
-    public void onRefresh() {
-            fetchOrder();
-
-    }
-
-
-
-
-    private void fetchOrder() {
+     public void fetchOrder() {
         orderList = new ArrayList<>();
-        adapter = new HistoryProgressSwipeListAdapter(getActivity(), orderList);
+        adapter = new HistorySwipeListAdapter(getActivity(), orderList);
         listView.setAdapter(adapter);
 
         // showing refresh animation before making http call
@@ -147,6 +138,42 @@ public class HistoryProgressFragment extends Fragment  implements SwipeRefreshLa
             }
         });
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+
+                if (orderList.get(position).status.contentEquals("order")) {
+
+                    Intent i = new Intent(getActivity(), FindDriverActivity.class);
+                    i.putExtra("id_order", (String) orderList.get(position).id_order);
+                    startActivity(i);
+                } else {
+                    if (orderList.get(position).orderType == 1) {
+                        Intent i = new Intent(getActivity(), ViewOrderRide.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
+                    }
+                    else if (orderList.get(position).orderType == 2) {
+                        Intent i = new Intent(getActivity(), ViewOrderSend.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
+                    }
+                    else if(orderList.get(position).orderType==3) {
+                    {
+
+                    }
+
+                }
+
+
+
+                }
+            }
+        });
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(req);
     }

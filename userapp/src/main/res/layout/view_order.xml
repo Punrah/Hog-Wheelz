@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.hogwheelz.userapps.activity.HogrideActivity">
+    tools:context="com.hogwheelz.userapps.activity.makeOrder.MakeOrder">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -24,8 +24,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context="com.hogwheelz.userapps.activity.WaitingDriverActivity">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
 
@@ -34,13 +33,13 @@
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context="com.hogwheelz.loginandregistration.activity.HogRide" />
+            android:layout_height="match_parent"/>
 
 
         <LinearLayout
-            android:orientation="vertical" android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:layout_margin="10dp"
             android:gravity="top"
@@ -125,10 +124,24 @@
             android:background="@color/white"
             android:id="@+id/pastbooking"
             >
-
-
-
-
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:orientation="vertical">
+                <Button
+                    android:id="@+id/button_detail_send"
+                    android:layout_gravity="center"
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/red"
+                    />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
             <TextView
                 android:id="@+id/price"
                 android:layout_width="match_parent"
@@ -161,62 +174,77 @@
                         android:id="@+id/driver_name"
                         android:layout_width="match_parent"
                         android:layout_height="25dp"
-                        android:text="nama"
                         android:gravity="left|center" />
                     <android.support.v7.widget.AppCompatTextView
                         android:id="@+id/id_order"
                         android:layout_width="match_parent"
                         android:layout_height="25dp"
-                        android:text="order"
                         android:gravity="left|center" />
                     <android.support.v7.widget.AppCompatTextView
                         android:id="@+id/status"
                         android:layout_width="match_parent"
                         android:layout_height="25dp"
-                        android:text="Driver on the way"
                         android:gravity="left|center" />
                 </LinearLayout>
 
             </android.support.v7.widget.LinearLayoutCompat>
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <android.support.v7.widget.LinearLayoutCompat
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_gravity="center"
+                    android:id="@+id/order_inactive"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-                    <android.support.v7.widget.AppCompatCheckedTextView
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:gravity="center"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:text="cancel"
-                        android:textColor="@color/red"/>
-                </android.support.v7.widget.LinearLayoutCompat>
-                <android.support.v7.widget.LinearLayoutCompat
+                        android:text="DETAIL"/>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-                    <android.support.v7.widget.AppCompatImageView
-                        android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:background="@drawable/phone"/>
-                </android.support.v7.widget.LinearLayoutCompat>
-                <android.support.v7.widget.LinearLayoutCompat
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-                    <android.support.v7.widget.AppCompatImageView
-                        android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:background="@drawable/message"/>
-                </android.support.v7.widget.LinearLayoutCompat>
+                    android:layout_height="wrap_content"
+                    android:id="@+id/order_active"
+                    android:orientation="horizontal">
+                    <android.support.v7.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+                        <android.support.v7.widget.AppCompatButton
+                            android:id="@+id/cancel_accepted_order"
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:text="cancel"
+                            android:textColor="@color/red"/>
+                    </android.support.v7.widget.LinearLayoutCompat>
+                    <android.support.v7.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+                        <android.support.v7.widget.AppCompatImageView
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:background="@drawable/phone"/>
+                    </android.support.v7.widget.LinearLayoutCompat>
+                    <android.support.v7.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+                        <android.support.v7.widget.AppCompatImageView
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:background="@drawable/message"/>
+                    </android.support.v7.widget.LinearLayoutCompat>
 
 
 
-            </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+
 
         </LinearLayout>
 

@@ -1,21 +1,33 @@
-package com.hogwheelz.userapps.activity;
+package com.hogwheelz.userapps.activity.ViewOrder;
 
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
+import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -29,24 +41,33 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.FindDriverActivity;
+import com.hogwheelz.userapps.activity.MainActivity;
+import com.hogwheelz.userapps.activity.NotifActivity;
 import com.hogwheelz.userapps.app.AppConfig;
+import com.hogwheelz.userapps.app.AppController;
+import com.hogwheelz.userapps.app.Config;
 import com.hogwheelz.userapps.helper.HttpHandler;
+import com.hogwheelz.userapps.persistence.Order;
 import com.hogwheelz.userapps.persistence.OrderRide;
+import com.hogwheelz.userapps.util.NotificationUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
 
-public class WaitingDriverActivity extends AppCompatActivity
+
+public abstract class ViewOrder extends NotifActivity
         implements  GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = WaitingDriverActivity.class.getSimpleName();
+    private static final String TAG = ViewOrder.class.getSimpleName();
 
 
 
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     protected GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     double lat =0, lng=0;
@@ -62,24 +83,29 @@ public class WaitingDriverActivity extends AppCompatActivity
     LinearLayout linearLayoutPickupNote;
     LinearLayout linearLayoutDropoffNote;
 
+    LinearLayout linearLayoutOrderActive;
+    LinearLayout linearLayoutOrderInactive;
+
     TextView textViewPickupNote;
     TextView textViewDropoffNote;
+    TextView textViewStatus;
 
 
     Marker pickUpMarker;
     Marker dropOffMarker;
     Marker driverMarker;
 
-    Double driverLocationLat;
-    Double driverLocationLng;
+    Button buttonCancel;
 
-    OrderRide orderRide;
     String idOrder;
+    int orderType;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+    AlertDialog.Builder alert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_waiting_driver);
+        setContentView(R.layout.view_order);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Driver Found");
         setSupportActionBar(toolbar);
@@ -104,50 +130,98 @@ public class WaitingDriverActivity extends AppCompatActivity
 
         textViewPickUpAddres=(TextView) findViewById(R.id.textView_pickup_address);
         textViewDropOffAddress=(TextView) findViewById(R.id.textView_dropoff_address);
+        textViewStatus=(TextView) findViewById(R.id.status);
 
         linearLayoutPickupNote=(LinearLayout) findViewById(R.id.pickup_note_edittext);
         linearLayoutDropoffNote=(LinearLayout) findViewById(R.id.dropoff_note_edittext);
 
+        linearLayoutOrderActive=(LinearLayout) findViewById(R.id.order_active);
+        linearLayoutOrderInactive=(LinearLayout) findViewById(R.id.order_inactive);
+
         textViewPickupNote=new TextView(this);
         textViewDropoffNote=new TextView(this);
 
-        idOrder= getIntent().getStringExtra("id_order");
-        orderRide = new OrderRide();
-        new getOrderDetail().execute();
+        buttonCancel=(Button) findViewById(R.id.cancel_accepted_order);
 
 
+
+        idOrder=getIntent().getStringExtra("id_order");
+
+        initializeOrder();
     }
 
-    private void setAllTextView()
-    {
-        textViewDriverName.setText(orderRide.driver.name);
-        textViewIdOrder.setText(orderRide.id_order);
-        textViewPrice.setText(orderRide.getPriceString());
-        textViewPickUpAddres.setText(orderRide.pickupAddress);
-        textViewDropOffAddress.setText(orderRide.dropoffAddress);
+    public abstract void setAllTextView();
 
-        if(!orderRide.pickupNote.equals(""))
-        {
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            textViewPickupNote.setText(orderRide.getPickupNoteString());
-            textViewPickupNote.setLayoutParams(params);
-            linearLayoutPickupNote.addView(textViewPickupNote);
-        }
 
-        if(!orderRide.dropoffNote.equals(""))
-        {
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            textViewDropoffNote.setText(orderRide.getDropoffNoteString());
-            textViewDropoffNote.setLayoutParams(params);
-            linearLayoutDropoffNote.addView(textViewDropoffNote);
-        }
+    public abstract void initializeOrder();
+
+
+    public void cancelAcceptedOrder() {
+        // Tag used to cancel the request
+        String tag_string_req = "cancel_accepted_order";
+
+
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.CANCEL_ACCEPTED_ORDER, new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "Login Response: " + response.toString());
+
+                try {
+                    JSONObject jObj = new JSONObject(response);
+                    String status = jObj.getString("status");
+                    String msg = jObj.getString("msg");
+
+                    // Check for error node in json
+                    if (status.contentEquals("1")) {
+                        finish();
+                        Toast.makeText(ViewOrder.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                    else if (status.contentEquals("2"))
+                    {
+                        Toast.makeText(ViewOrder.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        // Error in login. Get the error message
+
+                        String errorMsg = jObj.getString("msg");
+                        Toast.makeText(getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Login Error: " + error.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                // Posting parameters to login url
+                Map<String, String> params = new HashMap<String, String>();
+
+                params.put("id_order",idOrder);
+
+                return params;
+            }
+
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
-
-
 
 
     @Override
@@ -200,30 +274,12 @@ public class WaitingDriverActivity extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle bundle) {
-
-
+        getOrderDetail();
     }
 
-    private void adjustCamera()
-    {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+    public abstract void adjustCamera();
 
 
-        builder.include(pickUpMarker.getPosition());
-        builder.include(dropOffMarker.getPosition());
-        builder.include(driverMarker.getPosition());
-
-
-        LatLngBounds bounds = builder.build();
-
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.1); // offset from edges of the map 12% of screen
-
-
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, 500);
-        mMap.animateCamera(cu);
-    }
 
 
 
@@ -244,81 +300,12 @@ public class WaitingDriverActivity extends AppCompatActivity
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    private class getOrderDetail extends AsyncTask<Void, Void, Void> {
-        @Override
+    public abstract void getOrderDetail();
 
 
-
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-        protected Void doInBackground(Void... arg0) {
-
-            HttpHandler sh = new HttpHandler();
-            String url = AppConfig.getOrderDetail(idOrder);
-
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-
-                    JSONObject order = new JSONObject(jsonStr);
-
-                    orderRide.id_order=idOrder;
-                    orderRide.driver.idDriver = order.getString("id_driver");
-                    orderRide.driver.name = order.getString("driver_name");
-                    orderRide.driver.plat = order.getString("plat");
-                    orderRide.driver.phone = order.getString("driver_phone");
-                    orderRide.driver.driverLocation=new LatLng(order.getDouble("driver_lat"),order.getDouble("driver_long"));
-                    orderRide.status = order.getString("status_order");
-                    orderRide.dropoffAddress = order.getString("destination_address");
-                    orderRide.pickupAddress=order.getString("origin_address");
-                    orderRide.price=order.getInt("price");
-                    orderRide.pickupNote=order.getString("note");
-                    orderRide.dropoffNote=order.getString("note");
-                    orderRide.pickupPosition=new LatLng(order.getDouble("lat_from"),order.getDouble("long_from"));
-                    orderRide.dropoofPosition=new LatLng(order.getDouble("lat_to"),order.getDouble("long_to"));
-
-
-                } catch (final JSONException e) {
-
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
-                }
-            } else {
-                Log.e(TAG, "Json null");
-
-            }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(orderRide.pickupPosition));
-            dropOffMarker= mMap.addMarker(new MarkerOptions().position(orderRide.dropoofPosition));
-            driverMarker=mMap.addMarker(new MarkerOptions()
-                    .position(orderRide.driver.driverLocation)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
-            setAllTextView();
-            adjustCamera();
-
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-    }
 
     @Override
     protected void onStop() {
-
         super.onStop();
     }
 }

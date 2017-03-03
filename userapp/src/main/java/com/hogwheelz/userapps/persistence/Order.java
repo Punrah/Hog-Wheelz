@@ -12,13 +12,13 @@ import java.util.Date;
  * Created by Startup on 2/1/17.
  */
 
-public class Order implements Serializable{
+public  class Order implements Serializable{
 
     public User user;
     public String id_order;
     public String orderDate;
     public int price;
-    public int distance;
+    public double distance;
     public LatLng pickupPosition;
     public LatLng dropoofPosition;
     public String pickupAddress;
@@ -56,7 +56,9 @@ public class Order implements Serializable{
     public String getPriceString() {
         return String.valueOf(price);
     }
-
+    public String getDistanceString() {
+        return String.valueOf(distance);
+    }
     public String getPickupLatString() {
         return String.valueOf(pickupPosition.latitude);
     }

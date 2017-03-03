@@ -1,13 +1,21 @@
-package com.hogwheelz.userapps.activity;
+package com.hogwheelz.userapps.activity.makeOrder;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,15 +27,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
@@ -41,34 +46,33 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.NotifActivity;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
 import com.hogwheelz.userapps.helper.HttpHandler;
+import com.hogwheelz.userapps.persistence.Order;
 import com.hogwheelz.userapps.persistence.OrderRide;
-import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-public class HogrideActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = HogrideActivity.class.getSimpleName();
-    private Toolbar toolbar;
+    private static final String TAG = MakeOrder.class.getSimpleName();
+    private static final long SET_INTERVAL = 10 * 1000;
+    private static final long FASTEST_INTERVAL = 1 * 1000;
+    public Toolbar toolbar;
     private GoogleMap mMap;
     protected GoogleApiClient mGoogleApiClient;
     View mapView;
 
     Location mLastLocation;
-    double lat =0, lng=0;
+    double lat = 0, lng = 0;
     int PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP = 1;
     int PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF = 2;
 
@@ -89,7 +93,7 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
 
     boolean isPickupNoteActive;
     boolean isDropoffNoteActive;
-    private static boolean isPickUpAddressSetted,isDropOffAddressSetted;
+    private static boolean isPickUpAddressSetted, isDropOffAddressSetted;
 
     Double driverLocationLat[];
     Double driverLocationLng[];
@@ -99,17 +103,19 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
     LinearLayout linearLayoutOrder;
 
 
+    Order order;
 
-    OrderRide orderRide;
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hogride);
+        setContentView(R.layout.make_order);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Hogride");
-        setSupportActionBar(toolbar);
+
+        setToolbarTitle();
 
 
         buildGoogleApiClient();
@@ -120,13 +126,12 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
         mapFragment.getMapAsync(this);
         mapView = mapFragment.getView();
 
-        textViewPickUpAddres=(TextView)findViewById(R.id.textView_pickup_address);
-        textViewDropOffAddress=(TextView)findViewById(R.id.textView_dropoff_address);
-        textViewPrice=(TextView)findViewById(R.id.price);
+        textViewPickUpAddres = (TextView) findViewById(R.id.textView_pickup_address);
+        textViewDropOffAddress = (TextView) findViewById(R.id.textView_dropoff_address);
+        textViewPrice = (TextView) findViewById(R.id.price);
 
-        linearLayoutPickupNote=(LinearLayout) findViewById(R.id.pickup_note_edittext);
-        linearLayoutDropoffNote=(LinearLayout) findViewById(R.id.dropoff_note_edittext);
-
+        linearLayoutPickupNote = (LinearLayout) findViewById(R.id.pickup_note_edittext);
+        linearLayoutDropoffNote = (LinearLayout) findViewById(R.id.dropoff_note_edittext);
 
 
         LinearLayout pickUpAddressButton = (LinearLayout) findViewById(R.id.pickup_button);
@@ -145,11 +150,11 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
-        editTextPickupNote=new EditText(this);
-        editTextDropoffNote=new EditText(this);
+        editTextPickupNote = new EditText(this);
+        editTextDropoffNote = new EditText(this);
 
-        isDropoffNoteActive=false;
-        isPickupNoteActive=false;
+        isDropoffNoteActive = false;
+        isPickupNoteActive = false;
 
 
         buttonPickupNote = (Button) findViewById(R.id.pickup_note_button);
@@ -169,49 +174,45 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
         });
 
 
-        linearLayoutOrder= (LinearLayout) findViewById(R.id.order);
-        buttonBook =(Button) findViewById(R.id.book_button);
+        linearLayoutOrder = (LinearLayout) findViewById(R.id.order);
+        buttonBook = (Button) findViewById(R.id.book_button);
 
-        orderRide=new OrderRide();
+        inizializeOrder();
     }
 
+    public abstract void setToolbarTitle();
 
-    private void setPickupNoteState()
-    {
-        if(isPickupNoteActive)
-        {
+    public abstract void inizializeOrder();
+
+
+    private void setPickupNoteState() {
+        if (isPickupNoteActive) {
             linearLayoutPickupNote.removeView(editTextPickupNote);
-            isPickupNoteActive=false;
-        }
-        else if(!isPickupNoteActive)
-        {
+            isPickupNoteActive = false;
+        } else if (!isPickupNoteActive) {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             editTextPickupNote.setHint("add notes");
             editTextPickupNote.setLayoutParams(params);
             linearLayoutPickupNote.addView(editTextPickupNote);
-            isPickupNoteActive=true;
+            isPickupNoteActive = true;
         }
     }
 
-    private void setDropoffNoteState()
-    {
+    private void setDropoffNoteState() {
 
-        if(isDropoffNoteActive)
-        {
+        if (isDropoffNoteActive) {
             linearLayoutDropoffNote.removeView(editTextDropoffNote);
-            isDropoffNoteActive=false;
-        }
-        else if(!isDropoffNoteActive)
-        {
+            isDropoffNoteActive = false;
+        } else if (!isDropoffNoteActive) {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             editTextDropoffNote.setHint("add notes");
             editTextDropoffNote.setLayoutParams(params);
             linearLayoutDropoffNote.addView(editTextDropoffNote);
-            isDropoffNoteActive=true;
+            isDropoffNoteActive = true;
         }
     }
 
@@ -226,7 +227,6 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
 
         if (mapView != null &&
                 mapView.findViewById(Integer.parseInt("1")) != null) {
@@ -238,32 +238,89 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
             // position on right bottom
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0,0,0,500);
+            layoutParams.setMargins(0, 0, 0, 500);
         }
 
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,getApplicationContext(),MakeOrder.this)) {
+            getMyLocation();
+        }
+        else
+        {
+            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,PERMISSION_REQUEST_CODE_LOCATION,getApplicationContext(),MakeOrder.this);
+        }
+
+    }
+
+    private void getMyLocation()
+    {
+        mMap.setMyLocationEnabled(true);
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
+
         if (mLastLocation != null) {
             lat = mLastLocation.getLatitude();
             lng = mLastLocation.getLongitude();
-
-            orderRide.pickupPosition = new LatLng(lat, lng);
-            orderRide.pickupAddress=getAddress(lat,lng);
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(orderRide.pickupPosition).title(orderRide.pickupAddress));
-            dropOffMarker = mMap.addMarker(new MarkerOptions().position(orderRide.pickupPosition).title(orderRide.pickupAddress));
+            order.pickupPosition = new LatLng(lat, lng);
+            order.pickupAddress = getAddress(lat, lng);
+            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition).title(order.pickupAddress));
+            dropOffMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition).title(order.pickupAddress));
 
             new getDriverLocation().execute();
             dropOffMarker.setVisible(false);
             setAwal();
             adjustCamera();
             fillPickUpAddress();
+        }
+    }
+
+
+    public  void requestPermission(String strPermission, int perCode, Context _c, Activity _a){
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(_a,strPermission)){
+            Toast.makeText(getApplicationContext(),"GPS permission allows us to access location data. Please allow in App Settings for additional functionality.",Toast.LENGTH_LONG).show();
+        } else {
+
+            ActivityCompat.requestPermissions(_a,new String[]{strPermission},perCode);
+        }
+    }
+
+    public  boolean checkPermission(String strPermission,Context _c,Activity _a){
+        int result = ContextCompat.checkSelfPermission(_c, strPermission);
+        if (result == PackageManager.PERMISSION_GRANTED){
+
+            return true;
+
+        } else {
+
+            return false;
 
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case PERMISSION_REQUEST_CODE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getMyLocation();
+                } else {
+
+                    Toast.makeText(getApplicationContext(),"Permission Denied, You cannot access location data.",Toast.LENGTH_LONG).show();
+
+                }
+                break;
+
+        }
+    }
+
+
+
 
     @Override
     protected void onStart() {
@@ -331,11 +388,11 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
                     }
 
                 } catch (final JSONException e) {
-                    Toast.makeText(HogrideActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MakeOrder.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                 }
             } else {
-                Toast.makeText(HogrideActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MakeOrder.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
 
             }
             return null;
@@ -368,10 +425,10 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
 
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.1); // offset from edges of the map 12% of screen
+        int padding = (int) (height * 0.25); // offset from edges of the map 12% of screen
 
 
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, 500);
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
         mMap.animateCamera(cu);
     }
 
@@ -385,21 +442,21 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void fillPickUpAddress()
     {
-        pickUpMarker.setPosition(orderRide.pickupPosition);
-        pickUpMarker.setTitle(orderRide.pickupAddress);
+        pickUpMarker.setPosition(order.pickupPosition);
+        pickUpMarker.setTitle(order.pickupAddress);
         adjustCamera();
-        textViewPickUpAddres.setText(orderRide.pickupAddress);
+        textViewPickUpAddres.setText(order.pickupAddress);
         isPickUpAddressSetted=true;
         setBookingState();
     }
 
     private void fillDropOffAddress()
     {
-        dropOffMarker.setPosition(orderRide.dropoofPosition);
-        dropOffMarker.setTitle(orderRide.dropoffAddress);
+        dropOffMarker.setPosition(order.dropoofPosition);
+        dropOffMarker.setTitle(order.dropoffAddress);
         dropOffMarker.setVisible(true);
         adjustCamera();
-        textViewDropOffAddress.setText(orderRide.dropoffAddress);
+        textViewDropOffAddress.setText(order.dropoffAddress);
         isDropOffAddressSetted=true;
         setBookingState();
     }
@@ -408,7 +465,7 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
     {
         if(isDropOffAddressSetted&&isPickUpAddressSetted) {
 
-            new calculatePrice().execute();
+            readyToOrder();
         }
         else
         {
@@ -416,60 +473,8 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    private class calculatePrice extends AsyncTask<Void, Void, Void> {
-        @Override
+    public abstract void readyToOrder();
 
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // Showing progress dialog
-            textViewPrice.setText("Please wait");
-
-        }
-        protected Void doInBackground(Void... arg0) {
-
-            HttpHandler sh = new HttpHandler();
-
-            String originsLat = orderRide.getPickupLatString();
-            String originsLng =orderRide.getPickupLngString();
-            String destinationsLat = orderRide.getDropoffLatString();
-            String destinationsLng = orderRide.getDropoffLngString();
-            String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng);
-
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    orderRide.setPrice(jsonObj.getString("price"));
-
-                } catch (final JSONException e) {
-                    Toast.makeText(HogrideActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(HogrideActivity.this, "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
-            }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            textViewPrice.setText(orderRide.getPriceString());
-            linearLayoutOrder.setVisibility(View.VISIBLE);
-
-
-            // Link to Register Screen
-            buttonBook.setOnClickListener(new View.OnClickListener() {
-
-                public void onClick(View view) {
-                    booking();
-
-                }
-            });
-
-            // Dismiss the progress dialog
-
-        }
-    }
 
     private void callPlaceAutocompleteActivityIntentForPickUp() {
         try {
@@ -503,7 +508,7 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
-                orderRide.setPickupPlace(place);
+                order.setPickupPlace(place);
                 fillPickUpAddress();
 
 
@@ -520,7 +525,7 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
         else if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
-                orderRide.setDropoffPlace(place);
+                order.setDropoffPlace(place);
                 fillDropOffAddress();
 
 
@@ -536,82 +541,5 @@ public class HogrideActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-    private void booking() {
-        // Tag used to cancel the request
-        String tag_string_req = "booking";
-        orderRide.user = UserGlobal.getUser(getApplicationContext());
 
-        orderRide.pickupNote=editTextPickupNote.getText().toString();
-        orderRide.dropoffNote=editTextDropoffNote.getText().toString();
-
-
-
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_BOOKING, new Response.Listener<String>() {
-
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
-
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-
-                        String idOrder=jObj.getString("id_order");
-
-                        Intent i = new Intent(HogrideActivity.this,
-                                BookingActivity.class);
-                        i.putExtra("id_order",idOrder);
-                        startActivity(i);
-
-                    } else {
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                "status"+errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        "error listener"+error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_customer",orderRide.user.idCustomer);
-                params.put("add_from",orderRide.pickupAddress);
-                params.put("add_to",orderRide.dropoffAddress);
-                params.put("lat_from",orderRide.getPickupLatString());
-                params.put("long_from",orderRide.getPickupLngString());
-                params.put("lat_to",orderRide.getDropoffLatString());
-                params.put("long_to",orderRide.getDropoffLngString());
-                params.put("price",orderRide.getPriceString());
-                params.put("note",orderRide.getPickupNoteString()+orderRide.getDropoffNoteString());
-
-                return params;
-            }
-
-        };
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
-    }
 }

@@ -16,11 +16,13 @@
        <android.support.v7.widget.AppCompatButton
            android:layout_width="match_parent"
            android:layout_height="100dp"
-           android:text="Hogsend"/>
+           android:text="Hogsend"
+           android:id="@+id/button_hogsend"/>
        <android.support.v7.widget.AppCompatButton
            android:layout_width="match_parent"
            android:layout_height="100dp"
-           android:text="Hogfood"/>
+           android:text="Hogfood"
+           android:id="@+id/button_hogfood"/>
    </android.support.v7.widget.LinearLayoutCompat>
 
 </RelativeLayout>

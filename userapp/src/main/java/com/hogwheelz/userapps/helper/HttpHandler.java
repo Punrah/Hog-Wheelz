@@ -34,6 +34,9 @@ public class HttpHandler {
             URL url = new URL(reqUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.addRequestProperty("Cache-Control", "no-cache");
+            conn.addRequestProperty("Pragma", "no-cache");
+            conn.addRequestProperty("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
             // read the response
             InputStream in = new BufferedInputStream(conn.getInputStream());
             response = convertStreamToString(in);
