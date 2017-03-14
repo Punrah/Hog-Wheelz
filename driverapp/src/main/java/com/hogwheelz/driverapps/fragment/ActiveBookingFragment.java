@@ -1,10 +1,7 @@
 package com.hogwheelz.driverapps.fragment;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,11 +17,13 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.driverapps.R;
-import com.hogwheelz.driverapps.activity.ViewOrderActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderFoodActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderRideActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.adapter.HistorySwipeListAdapter;
 import com.hogwheelz.driverapps.app.AppConfig;
 import com.hogwheelz.driverapps.app.AppController;
-import com.hogwheelz.driverapps.helper.HttpHandler;
 import com.hogwheelz.driverapps.persistence.DriverGlobal;
 import com.hogwheelz.driverapps.persistence.Order;
 
@@ -33,8 +32,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 
 public class ActiveBookingFragment extends BookingFragmentUp  implements SwipeRefreshLayout.OnRefreshListener{
@@ -145,9 +142,23 @@ public class ActiveBookingFragment extends BookingFragmentUp  implements SwipeRe
                 Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
                 animation1.setDuration(800);
                 view.startAnimation(animation1);
-                Intent i = new Intent(getActivity(), ViewOrderActivity.class);
-                i.putExtra("id_order", orderList.get(position).id_order);
-                startActivity(i);
+
+                if (orderList.get(position).orderType == 1) {
+                    Intent i = new Intent(getActivity(), ViewOrderRideActivity.class);
+                    i.putExtra("id_order", (String) orderList.get(position).id_order);
+                    startActivity(i);
+                }
+                else if (orderList.get(position).orderType == 2) {
+                    Intent i = new Intent(getActivity(), ViewOrderSendActivity.class);
+                    i.putExtra("id_order", (String) orderList.get(position).id_order);
+                    startActivity(i);
+                }
+                else if(orderList.get(position).orderType==3)
+                    {
+                        Intent i = new Intent(getActivity(), ViewOrderFoodActivity.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
+                    }
             }
         });
         // Adding request to request queue

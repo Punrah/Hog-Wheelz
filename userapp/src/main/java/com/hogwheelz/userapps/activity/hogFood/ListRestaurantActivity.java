@@ -64,10 +64,12 @@ public class ListRestaurantActivity extends NotifActivity {
                                     // Getting JSON Array node
                                     JSONObject c = response.getJSONObject(i);
 
-                                    Restaurant restaurant = new Restaurant();
+                                    final Restaurant restaurant = new Restaurant();
                                     restaurant.name = c.getString("name");
                                     restaurant.address = c.getString("address");
                                     restaurant.distance =c.getDouble("distance");
+                                    restaurant.idRestaurant=c.getString("id_restaurant");
+                                    restaurant.photo = c.getString("photo");
 
 
                                     LayoutInflater inflater = getLayoutInflater();
@@ -88,7 +90,7 @@ public class ListRestaurantActivity extends NotifActivity {
                                             animation1.setDuration(800);
                                             view.startAnimation(animation1);
                                             Intent i = new Intent(ListRestaurantActivity.this, RestaurantActivity.class);
-                                            i.putExtra("id_restaurant","makan");
+                                            i.putExtra("id_restaurant",restaurant.idRestaurant);
                                             startActivity(i);
                                         }
 
@@ -118,4 +120,6 @@ public class ListRestaurantActivity extends NotifActivity {
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(req);
     }
+
+
 }

@@ -24,6 +24,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.FindDriverActivity;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderFood;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderRide;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderSend;
 import com.hogwheelz.userapps.activity.makeOrder.MakeOrderRideActivity;
@@ -164,7 +165,9 @@ public class HistoryProgressFragment extends  HistoryFragmentUp  implements Swip
                     }
                     else if(orderList.get(position).orderType==3) {
                     {
-
+                        Intent i = new Intent(getActivity(), ViewOrderFood.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
                     }
 
                 }

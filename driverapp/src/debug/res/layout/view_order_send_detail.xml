@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Item Description"
+        android:textSize="14dp"/>
+    <TextView
+        android:id="@+id/item_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bla bla"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sender Name"
+        android:textSize="14dp"/>
+    <TextView
+        android:id="@+id/sender_name_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bla bla"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sender Phone"
+        android:textSize="14dp"/>
+    <TextView
+        android:id="@+id/sender_phone_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bla bla"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        />
+    <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Receiver Name"
+    android:textSize="14dp"/>
+    <TextView
+        android:id="@+id/receiver_name_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bla bla"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Receiver Phone"
+        android:textSize="14dp"/>
+    <TextView
+        android:id="@+id/receiver_phone_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bla bla"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        />
+
+</LinearLayout>

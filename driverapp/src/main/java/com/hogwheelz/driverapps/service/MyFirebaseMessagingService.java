@@ -8,7 +8,6 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.hogwheelz.driverapps.activity.FindOrderDetailActivity;
 import com.hogwheelz.driverapps.activity.MainActivity;
 import com.hogwheelz.driverapps.app.Config;
 import com.hogwheelz.driverapps.util.NotificationUtils;

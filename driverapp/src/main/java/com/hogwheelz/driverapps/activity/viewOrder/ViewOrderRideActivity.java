@@ -1,51 +1,30 @@
-package com.hogwheelz.driverapps.activity;
+package com.hogwheelz.driverapps.activity.viewOrder;
 
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.driverapps.R;
 import com.hogwheelz.driverapps.app.AppConfig;
 import com.hogwheelz.driverapps.app.AppController;
-import com.hogwheelz.driverapps.app.Config;
 import com.hogwheelz.driverapps.helper.HttpHandler;
 import com.hogwheelz.driverapps.persistence.OrderRide;
-import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,67 +32,82 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    private static final String TAG = ViewOrderActivity.class.getSimpleName();
-
-    View mapView;
-    private GoogleMap mMap;
-    protected GoogleApiClient mGoogleApiClient;
-
-    OrderRide orderRide;
-    String idOrder;
-
-    Marker pickUpMarker;
-    Marker dropOffMarker;
-    Marker driverMarker;
-
-    TextView textViewCustomerName;
-    TextView textViewDestination;
-    TextView textViewDistance;
-    TextView textViewOrderId;
-    TextView textViewOrigin;
-    TextView textViewPrice;
-    TextView textViewNoteOrigin;
-    TextView textViewNoteDestination;
-
-    Button buttonGo;
-    Button buttonCancel;
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-    AlertDialog.Builder alert;
+public class ViewOrderRideActivity extends ViewOrderActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    private static final String TAG = ViewOrderRideActivity.class.getSimpleName();
+OrderRide order;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_order);
+    public void initializeOrder() {
+        order = new OrderRide();
 
-        buildGoogleApiClient();
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        mapView = mapFragment.getView();
-
-         textViewCustomerName=(TextView)findViewById(R.id.customer_name);
-         textViewDestination=(TextView)findViewById(R.id.destination);
-         textViewDistance=(TextView)findViewById(R.id.distance);
-         textViewOrderId=(TextView)findViewById(R.id.order_id);
-         textViewOrigin=(TextView)findViewById(R.id.origin);
-         textViewPrice=(TextView)findViewById(R.id.price);
-         textViewNoteOrigin=(TextView)findViewById(R.id.note_origin);
-         textViewNoteDestination=(TextView)findViewById(R.id.note_destination);
-
-         buttonGo = (Button) findViewById(R.id.button_go);
-         buttonCancel = (Button) findViewById(R.id.button_cancel);
-
-
-
-
-        idOrder= getIntent().getStringExtra("id_order");
-        orderRide = new OrderRide();
     }
 
-    private void cancelAcceptedOrder() {
+    @Override
+    public void getOrderDetail() {
+        new getOrderDetail().execute();
+    }
+
+    private class getOrderDetail extends AsyncTask<Void, Void, Void> {
+        @Override
+
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+        protected Void doInBackground(Void... arg0) {
+
+            HttpHandler sh = new HttpHandler();
+            String url = AppConfig.getOrderDetail(idOrder);
+
+            String jsonStr = sh.makeServiceCall(url);
+            if (jsonStr != null) {
+                try {
+
+                    JSONObject orderJson = new JSONObject(jsonStr);
+
+                    order.id_order=idOrder;
+                    order.user.name= orderJson.getString("cus_name");
+                    order.user.Phone=orderJson.getString("cus_phone");
+                    order.status = orderJson.getString("status_order");
+                    order.dropoffAddress = orderJson.getString("destination_address");
+                    order.pickupAddress=orderJson.getString("origin_address");
+                    order.price=orderJson.getInt("price");
+                    order.distance=orderJson.getDouble("distance");
+                    order.pickupNote=orderJson.getString("note");
+                    order.dropoffNote=orderJson.getString("note");
+                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+
+
+                } catch (final JSONException e) {
+
+                    Log.e(TAG, "Order Detail: " + e.getMessage());
+                }
+            } else {
+                Log.e(TAG, "Json null");
+
+            }
+            return null;
+        }
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition));
+            dropOffMarker= mMap.addMarker(new MarkerOptions().position(order.dropoofPosition));
+            Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    mGoogleApiClient);
+            double lat = mLastLocation.getLatitude();
+            double lng = mLastLocation.getLongitude();
+            driverMarker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(lat, lng))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
+            setAllTextView();
+            adjustCamera();
+
+        }
+    }
+
+    public void cancelAcceptedOrder() {
         // Tag used to cancel the request
         Toast.makeText(this, "makann", Toast.LENGTH_SHORT).show();
         String tag_string_req = "cancel_accepted_order";
@@ -134,11 +128,11 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                     // Check for error node in json
                     if (status.contentEquals("1")) {
                         finish();
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                     else if (status.contentEquals("2"))
                     {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                     else {
                         // Error in login. Get the error message
@@ -180,119 +174,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
-
-
-    private void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
-
-        if (mapView != null &&
-                mapView.findViewById(Integer.parseInt("1")) != null) {
-            // Get the button view
-            View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
-            // and next place it, on bottom right (as Google Maps app)
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
-                    locationButton.getLayoutParams();
-            // position on right bottom
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0,0,0,500);
-        }
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        new getOrderDetail().execute();
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    private class getOrderDetail extends AsyncTask<Void, Void, Void> {
-        @Override
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-        protected Void doInBackground(Void... arg0) {
-
-            HttpHandler sh = new HttpHandler();
-            String url = AppConfig.getOrderDetail(idOrder);
-
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-
-                    JSONObject order = new JSONObject(jsonStr);
-
-                    orderRide.id_order=idOrder;
-                    orderRide.user.name= order.getString("cus_name");
-                    orderRide.user.Phone=order.getString("cus_phone");
-                    orderRide.status = order.getString("status_order");
-                    orderRide.dropoffAddress = order.getString("destination_address");
-                    orderRide.pickupAddress=order.getString("origin_address");
-                    orderRide.price=order.getInt("price");
-                    orderRide.distance=order.getDouble("distance");
-                    orderRide.pickupNote=order.getString("note");
-                    orderRide.dropoffNote=order.getString("note");
-                    orderRide.pickupPosition=new LatLng(order.getDouble("lat_from"),order.getDouble("long_from"));
-                    orderRide.dropoofPosition=new LatLng(order.getDouble("lat_to"),order.getDouble("long_to"));
-
-
-                } catch (final JSONException e) {
-
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
-                }
-            } else {
-                Log.e(TAG, "Json null");
-
-            }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(orderRide.pickupPosition));
-            dropOffMarker= mMap.addMarker(new MarkerOptions().position(orderRide.dropoofPosition));
-            Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-            double lat = mLastLocation.getLatitude();
-            double lng = mLastLocation.getLongitude();
-            driverMarker = mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(lat, lng))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
-            setAllTextView();
-            adjustCamera();
-
-        }
-    }
-
-
-    private void otwOrder() {
+    public void otwOrder() {
         // Tag used to cancel the request
         String tag_string_req = "go_order";
 
@@ -311,15 +193,15 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
 
                     // Check for error node in json
                     if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        Intent i=new Intent(ViewOrderActivity.this,ViewOrderActivity.class);
-                        i.putExtra("id_order",orderRide.id_order);
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Intent i=new Intent(ViewOrderRideActivity.this,ViewOrderRideActivity.class);
+                        i.putExtra("id_order", order.id_order);
                         startActivity(i);
                         finish();
                     }
                     else if (status.contentEquals("2"))
                     {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                     else {
                         // Error in login. Get the error message
@@ -351,7 +233,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
 
-                params.put("id_order",orderRide.id_order);
+                params.put("id_order", order.id_order);
 
                 return params;
             }
@@ -361,7 +243,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
-    private void startOrder() {
+    public void startOrder() {
         // Tag used to cancel the request
         String tag_string_req = "go_order";
 
@@ -380,15 +262,15 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
 
                     // Check for error node in json
                     if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        Intent i=new Intent(ViewOrderActivity.this,ViewOrderActivity.class);
-                        i.putExtra("id_order",orderRide.id_order);
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Intent i=new Intent(ViewOrderRideActivity.this,ViewOrderRideActivity.class);
+                        i.putExtra("id_order", order.id_order);
                         startActivity(i);
                         finish();
                     }
                     else if (status.contentEquals("2"))
                     {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                     else {
                         // Error in login. Get the error message
@@ -420,7 +302,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
 
-                params.put("id_order",orderRide.id_order);
+                params.put("id_order", order.id_order);
 
                 return params;
             }
@@ -430,7 +312,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
-    private void completeOrder() {
+    public void completeOrder() {
         // Tag used to cancel the request
         String tag_string_req = "go_order";
 
@@ -449,12 +331,12 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
 
                     // Check for error node in json
                     if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                         finish();
                     }
                     else if (status.contentEquals("2"))
                     {
-                        Toast.makeText(ViewOrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewOrderRideActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                     else {
                         // Error in login. Get the error message
@@ -486,7 +368,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
 
-                params.put("id_order",orderRide.id_order);
+                params.put("id_order", order.id_order);
 
                 return params;
             }
@@ -497,19 +379,18 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
 
-
-    private void setAllTextView()
+    public void setAllTextView()
     {
-        textViewCustomerName.setText(orderRide.user.name);
-        textViewDestination.setText(orderRide.dropoffAddress);
-        textViewDistance.setText(orderRide.getDistanceString());
-        textViewOrderId.setText(orderRide.id_order);
-        textViewOrigin.setText(orderRide.pickupAddress);
-        textViewPrice.setText(orderRide.getPriceString());
-        textViewNoteOrigin.setText(orderRide.pickupNote);
-        textViewNoteDestination.setText(orderRide.dropoffNote);
+        textViewCustomerName.setText(order.user.name);
+        textViewDestination.setText(order.dropoffAddress);
+        textViewDistance.setText(order.getDistanceString());
+        textViewOrderId.setText(order.id_order);
+        textViewOrigin.setText(order.pickupAddress);
+        textViewPrice.setText(order.getPriceString());
+        textViewNoteOrigin.setText(order.pickupNote);
+        textViewNoteDestination.setText(order.dropoffNote);
 
-        if(orderRide.status.contentEquals("Accept"))
+        if(order.status.contentEquals("Accept"))
         {
             buttonGo.setText("OTW");
             buttonGo.setOnClickListener(new View.OnClickListener() {
@@ -525,7 +406,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 }
             });
         }
-        else if (orderRide.status.contentEquals("OTW"))
+        else if (order.status.contentEquals("OTW"))
         {
             buttonGo.setText("Start");
             buttonGo.setOnClickListener(new View.OnClickListener() {
@@ -541,7 +422,7 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 }
             });
         }
-        else if (orderRide.status.contentEquals("start"))
+        else if (order.status.contentEquals("start"))
         {
             buttonGo.setText("Complete");
             buttonGo.setOnClickListener(new View.OnClickListener() {
@@ -557,9 +438,9 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 }
             });
         }
-        else if (orderRide.status.contentEquals("Complete"))
+        else if (order.status.contentEquals("Complete"))
         {
-            buttonGo.setText("Detail");
+            buttonGo.setText("");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -572,9 +453,9 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
                 }
             });
         }
-        else if (orderRide.status.contentEquals("Cancel"))
+        else if (order.status.contentEquals("Cancel"))
         {
-            buttonGo.setText("Detail");
+            buttonGo.setText("");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -590,16 +471,14 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
 
     }
 
-
-
-    private void adjustCamera()
+    public void adjustCamera()
     {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
 
         builder.include(pickUpMarker.getPosition());
         builder.include(dropOffMarker.getPosition());
-        if(!orderRide.driver.idDriver.contentEquals("0")) {
+        if(!order.driver.idDriver.contentEquals("0")) {
             builder.include(driverMarker.getPosition());
         }
 
@@ -614,4 +493,8 @@ public class ViewOrderActivity extends NotifActivity implements OnMapReadyCallba
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
         mMap.animateCamera(cu);
     }
+
+
+
+
 }

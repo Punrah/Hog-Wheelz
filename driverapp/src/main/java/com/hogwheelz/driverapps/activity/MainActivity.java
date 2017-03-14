@@ -5,21 +5,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.widget.TextView;
@@ -27,17 +22,20 @@ import android.widget.Toast;
 
 
 import com.hogwheelz.driverapps.R;
-import com.hogwheelz.driverapps.app.Config;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderFoodActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderRideActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.fragment.MessageFragment;
 import com.hogwheelz.driverapps.fragment.MyAccountFragment;
 import com.hogwheelz.driverapps.fragment.MyBookingFragment;
 import com.hogwheelz.driverapps.fragment.FindOrderFragment;
+import com.hogwheelz.driverapps.fragment.PaymentFragment;
 import com.hogwheelz.driverapps.helper.SessionManager;
 import com.hogwheelz.driverapps.helper.DriverSQLiteHandler;
 import com.hogwheelz.driverapps.persistence.Driver;
 import com.hogwheelz.driverapps.persistence.DriverGlobal;
 import com.hogwheelz.driverapps.service.LocationUpdateService;
-import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,13 +90,21 @@ public class MainActivity extends NotifActivity {
     @Override
     public void openOrderActivity() {
         if(orderType==1) {
-            Intent i = new Intent(this, ViewOrderActivity.class);
+            Intent i = new Intent(this, ViewOrderRideActivity.class);
             i.putExtra("id_order", idOrder);
             startActivity(i);
         }
         else if (orderType==2)
         {
-
+            Intent i = new Intent(this, ViewOrderSendActivity.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
+        }
+        else if (orderType==3)
+        {
+            Intent i = new Intent(this, ViewOrderFoodActivity.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
         }
     }
 
@@ -188,14 +194,19 @@ public class MainActivity extends NotifActivity {
         tabLayout.getTabAt(1).setCustomView(tabTwo);
 
         TextView tabThree = (TextView) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
-        tabThree.setText("Message");
+        tabThree.setText("Payment");
         tabThree.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_home_black_24dp, 0, 0);
         tabLayout.getTabAt(2).setCustomView(tabThree);
 
         TextView tabFour = (TextView) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
-        tabFour.setText("My Account");
+        tabFour.setText("Message");
         tabFour.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_home_black_24dp, 0, 0);
         tabLayout.getTabAt(3).setCustomView(tabFour);
+
+        TextView tabFive = (TextView) LayoutInflater.from(this).inflate(R.layout.custom_tab, null);
+        tabFive.setText("My Account");
+        tabFive.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_home_black_24dp, 0, 0);
+        tabLayout.getTabAt(4).setCustomView(tabFive);
     }
 
     /**
@@ -207,7 +218,8 @@ public class MainActivity extends NotifActivity {
         adapter.addFrag(new FindOrderFragment(), "ONE");
         adapter.addFrag(new MyBookingFragment(), "TWO");
         adapter.addFrag(new MessageFragment(), "THREE");
-        adapter.addFrag(new MyAccountFragment(), "FOUR");
+        adapter.addFrag(new PaymentFragment(), "FOUR");
+        adapter.addFrag(new MyAccountFragment(), "FIVE");
         viewPager.setAdapter(adapter);
     }
 

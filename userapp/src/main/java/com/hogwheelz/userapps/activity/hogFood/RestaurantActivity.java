@@ -20,6 +20,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.hogwheelz.userapps.R;
@@ -29,7 +31,9 @@ import com.hogwheelz.userapps.app.AppController;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.Item;
 import com.hogwheelz.userapps.persistence.Menu;
+import com.hogwheelz.userapps.persistence.OrderFood;
 import com.hogwheelz.userapps.persistence.Restaurant;
+import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +52,11 @@ public class RestaurantActivity extends NotifActivity {
     TextView textViewOpenHour;
     TextView textViewRetaurantDetail;
     Restaurant restaurant;
+    TextView textViewRecapPrice;
+    Button buttonCheckout;
+    String idRestaurant;
+
+    OrderFood orderFood;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,11 +69,24 @@ public class RestaurantActivity extends NotifActivity {
         textViewRestaurantAddress= (TextView) findViewById(R.id.restaurant_address);
         textViewOpenHour= (TextView) findViewById(R.id.restaurant_distance_and_open_hour);
         textViewRetaurantDetail=(TextView) findViewById(R.id.button_restaurant_detail);
+        textViewRecapPrice=(TextView) findViewById(R.id.price_recap);
+        buttonCheckout= (Button) findViewById(R.id.checkout);
+
+        idRestaurant=getIntent().getStringExtra("id_restaurant");
         new fetchRestaurant().execute();
 
 
 
+
+
+
     }
+
+    private void setRecapPrice()
+    {
+        textViewRecapPrice.setText(String.valueOf(restaurant.getRecapPrice()));
+    }
+
 
     private class fetchRestaurant extends AsyncTask<Void, Void, Void> {
         @Override
@@ -77,7 +99,7 @@ public class RestaurantActivity extends NotifActivity {
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
-            String url = AppConfig.getRestaurantDetail();
+            String url = AppConfig.getRestaurantDetail(idRestaurant);
 
             restaurant = new Restaurant();
 
@@ -161,6 +183,7 @@ public class RestaurantActivity extends NotifActivity {
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             setTextView();
+            setRecapPrice();
         }
     }
 
@@ -173,16 +196,19 @@ public class RestaurantActivity extends NotifActivity {
 
             public void onClick(View view) {
                 Intent intent = new Intent(RestaurantActivity.this, RestaurantDetailActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putParcelable("location", restaurant.location);
-                bundle.putStringArrayList("open_hours_complete", (ArrayList<String>) restaurant.openHourComplete);
-                bundle.putString("name", restaurant.name);
-                bundle.putString("address", restaurant.address);
-                bundle.putString("phone", restaurant.name);
-                intent.putExtras(bundle);
+                intent.putExtra("restaurant",restaurant);
                 startActivity(intent);
             }
         });
+        buttonCheckout.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                Intent intent = new Intent(RestaurantActivity.this,MakeOrderFoodActivity.class);
+                intent.putExtra("restaurant",restaurant);
+                startActivityForResult(intent,1);
+            }
+        });
+
         for(int i=0;i<restaurant.menu.size();i++)
         {
             final LayoutInflater inflater = getLayoutInflater();
@@ -191,6 +217,7 @@ public class RestaurantActivity extends NotifActivity {
 
             name.setText(String.valueOf(restaurant.menu.get(i).name));
             final List<Item> items =restaurant.menu.get(i).item;
+            final int j=i;
             convertView.setOnClickListener(new View.OnClickListener() {
 
                 public void onClick(View view) {
@@ -198,9 +225,7 @@ public class RestaurantActivity extends NotifActivity {
                     Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
                     animation1.setDuration(800);
                     view.startAnimation(animation1);
-                    Intent intent = new Intent(RestaurantActivity.this,ListItemActivity.class);
-                    intent.putParcelableArrayListExtra("item", (ArrayList<? extends Parcelable>) items);
-                    startActivity(intent);
+                    openListItem(j);
                 }
 
             });
@@ -210,73 +235,22 @@ public class RestaurantActivity extends NotifActivity {
         Log.e(TAG, "resto: " + restaurant.toString());
     }
 
-
-
-    private void fetchMenuRestaurant() {
-
-        // appending offset to url
-        String url = AppConfig.getMenuURL();
-
-        // Volley's json array request object
-        JsonArrayRequest req = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
-
-                        if (response.length() > 0) {
-
-                            for (int i = 0; i < response.length(); i++) {
-                                try {
-
-                                    // Getting JSON Array node
-                                    JSONObject c = response.getJSONObject(i);
-
-                                    Item item = new Item();
-                                    item.name = c.getString("nama");
-
-
-                                    LayoutInflater inflater = getLayoutInflater();
-                                    FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_menu, linearLayoutMenu, false);
-                                    TextView name = (TextView) convertView.findViewById(R.id.menu_name);
-
-                                    name.setText(String.valueOf(item.name));
-
-                                    convertView.setOnClickListener(new View.OnClickListener() {
-
-                                        public void onClick(View view) {
-                                            // Start an alpha animation for clicked item
-                                            Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                                            animation1.setDuration(800);
-                                            view.startAnimation(animation1);
-                                            Intent i = new Intent(RestaurantActivity.this,ListItemActivity.class);
-                                            startActivity(i);
-                                        }
-
-                                    });
-
-                                    linearLayoutMenu.addView(convertView);
-
-                                } catch (JSONException e) {
-                                    Log.e(TAG, "JSON Parsing error: " + e.getMessage());
-                                }
-                            }
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Server Error: " + error.getMessage());
-
-                Toast.makeText(RestaurantActivity.this, error.getMessage(), Toast.LENGTH_LONG).show();
-
-            }
-        });
-
-
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(req);
+    private void openListItem(int j)
+    {
+        Intent intent = new Intent(RestaurantActivity.this,ListItemActivity.class);
+        intent.putExtra("restaurant",restaurant);
+        intent.putExtra("index",j);
+        startActivityForResult(intent,1);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                restaurant = data.getParcelableExtra("restaurant");
+                setRecapPrice();
+            }
+        }
+    }
+
 }

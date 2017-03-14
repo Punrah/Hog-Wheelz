@@ -1,5 +1,6 @@
 package com.hogwheelz.userapps.persistence;
 
+import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.android.gms.location.places.Place;
@@ -12,7 +13,7 @@ import java.util.Date;
  * Created by Startup on 2/1/17.
  */
 
-public  class Order implements Serializable{
+public  class Order{
 
     public User user;
     public String id_order;
@@ -100,5 +101,4 @@ public  class Order implements Serializable{
         dropoofPosition=place.getLatLng();
         dropoffAddress=place.getName().toString();
     }
-
 }

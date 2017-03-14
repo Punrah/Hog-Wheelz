@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderFood;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderRide;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderSend;
 import com.hogwheelz.userapps.app.Config;
@@ -104,6 +105,13 @@ public class NotifActivity extends AppCompatActivity {
         else if (orderType==2)
         {
             Intent i = new Intent(this, ViewOrderSend.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
+            finish();
+        }
+        else if (orderType==3)
+        {
+            Intent i = new Intent(this, ViewOrderFood.class);
             i.putExtra("id_order", idOrder);
             startActivity(i);
             finish();

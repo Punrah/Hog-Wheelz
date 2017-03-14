@@ -63,9 +63,13 @@
             android:exported="false"
             android:stopWithTask="false" />
 
-        <activity android:name=".activity.FindOrderDetailActivity" />
         <activity android:name=".activity.LoginActivity" />
-        <activity android:name=".activity.ViewOrderActivity"></activity>
+        <activity android:name=".activity.viewOrder.ViewOrderRideActivity"></activity>
+        <activity android:name=".activity.viewOrder.ViewOrderSendActivity"></activity>
+        <activity android:name=".activity.viewOrder.ViewOrderFoodActivity"></activity>
+        <activity android:name=".activity.findOrder.FindOrderDetailFoodActivity"></activity>
+        <activity android:name=".activity.findOrder.FindOrderDetailRideActivity"></activity>
+        <activity android:name=".activity.findOrder.FindOrderDetailSendActivity"></activity>
     </application>
 
 </manifest>

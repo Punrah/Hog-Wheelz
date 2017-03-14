@@ -49,6 +49,7 @@
         <activity android:name=".activity.FindDriverActivity" />
         <activity android:name=".activity.ViewOrder.ViewOrderRide" />
         <activity android:name=".activity.ViewOrder.ViewOrderSend" />
+        <activity android:name=".activity.ViewOrder.ViewOrderFood" />
         <!-- Firebase Notifications -->
         <service
             android:name=".service.MyFirebaseMessagingService"
@@ -77,8 +78,16 @@
         <activity android:name=".activity.hogFood.ListRestaurantActivity" />
         <activity android:name=".activity.hogFood.RestaurantActivity" />
         <activity android:name=".activity.hogFood.ListItemActivity" />
-        <activity android:name=".activity.hogFood.RestaurantDetailActivity"></activity>
-        <activity android:name=".activity.Notif" />
+        <activity android:name=".activity.hogFood.RestaurantDetailActivity" />
+        <!--
+ ATTENTION: This was auto-generated to add Google Play services to your project for
+     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <activity android:name=".activity.hogFood.MakeOrderFoodActivity"></activity>
     </application>
 
 </manifest>

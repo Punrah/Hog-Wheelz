@@ -1,48 +1,26 @@
 package com.hogwheelz.driverapps.activity;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hogwheelz.driverapps.R;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderFoodActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderRideActivity;
+import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.app.Config;
-import com.hogwheelz.driverapps.fragment.FindOrderFragment;
-import com.hogwheelz.driverapps.fragment.MessageFragment;
-import com.hogwheelz.driverapps.fragment.MyAccountFragment;
-import com.hogwheelz.driverapps.fragment.MyBookingFragment;
-import com.hogwheelz.driverapps.helper.DriverSQLiteHandler;
-import com.hogwheelz.driverapps.helper.SessionManager;
-import com.hogwheelz.driverapps.persistence.Driver;
-import com.hogwheelz.driverapps.persistence.DriverGlobal;
-import com.hogwheelz.driverapps.service.LocationUpdateService;
 import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class NotifActivity extends AppCompatActivity {
@@ -117,14 +95,24 @@ public class NotifActivity extends AppCompatActivity {
     public void openOrderActivity()
     {
         if(orderType==1) {
-            Intent i = new Intent(this, ViewOrderActivity.class);
+            Intent i = new Intent(this, ViewOrderRideActivity.class);
             i.putExtra("id_order", idOrder);
             startActivity(i);
             finish();
         }
         else if (orderType==2)
         {
-
+            Intent i = new Intent(this, ViewOrderSendActivity.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
+            finish();
+        }
+        else if (orderType==3)
+        {
+            Intent i = new Intent(this, ViewOrderFoodActivity.class);
+            i.putExtra("id_order", idOrder);
+            startActivity(i);
+            finish();
         }
 
     }

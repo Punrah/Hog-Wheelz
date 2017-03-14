@@ -1,12 +1,7 @@
-package com.hogwheelz.userapps.persistence;
+package com.hogwheelz.driverapps.persistence;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import com.google.android.gms.maps.model.LatLng;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Startup on 2/10/17.
@@ -55,7 +50,7 @@ public class Item implements Parcelable {
         return String.valueOf(price);
     }
 
-    public static final Parcelable.Creator<Item> CREATOR = new Creator<Item>() {
+    public static final Creator<Item> CREATOR = new Creator<Item>() {
         public Item createFromParcel(Parcel source) {
             Item item = new Item();
             item.idItem = source.readString();

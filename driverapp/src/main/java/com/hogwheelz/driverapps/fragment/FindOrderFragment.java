@@ -27,8 +27,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hogwheelz.driverapps.R;
-import com.hogwheelz.driverapps.activity.FindOrderDetailActivity;
 import com.hogwheelz.driverapps.activity.MainActivity;
+import com.hogwheelz.driverapps.activity.findOrder.FindOrderDetailFoodActivity;
+import com.hogwheelz.driverapps.activity.findOrder.FindOrderDetailRideActivity;
+import com.hogwheelz.driverapps.activity.findOrder.FindOrderDetailSendActivity;
 import com.hogwheelz.driverapps.app.Config;
 import com.hogwheelz.driverapps.persistence.DriverGlobal;
 import com.hogwheelz.driverapps.persistence.OrderFirebase;
@@ -164,20 +166,25 @@ public class FindOrderFragment extends Fragment   {
                             animation1.setDuration(800);
                             view.startAnimation(animation1);
 
-                            Intent i = new Intent(getActivity(),
-                                    FindOrderDetailActivity.class);
-                            i.putExtra("destination_address", (String) orderList.get(position).get("destination_address"));
-                            i.putExtra("destination_lat", (String) orderList.get(position).get("destination_lat"));
-                            i.putExtra("destination_lng", (String) orderList.get(position).get("destination_lng"));
-                            i.putExtra("distance", (String) orderList.get(position).get("distance"));
-                            i.putExtra("order_id", (String) orderList.get(position).get("order_id"));
-                            i.putExtra("order_type", (String) orderList.get(position).get("order_type"));
-                            i.putExtra("origin_address", (String) orderList.get(position).get("origin_address"));
-                            i.putExtra("origin_lat", (String) orderList.get(position).get("origin_lat"));
-                            i.putExtra("origin_lng", (String) orderList.get(position).get("origin_lng"));
-                            i.putExtra("price", (String) orderList.get(position).get("price"));
-                            i.putExtra("note", (String) orderList.get(position).get("note"));
-                            startActivity(i);
+                            if (orderList.get(position).get("order_type").equals("1")) {
+                                Intent i = new Intent(getActivity(), FindOrderDetailRideActivity.class);
+                                i.putExtra("id_order", (String) orderList.get(position).get("order_id"));
+                                i.putExtra("order_type", (String) orderList.get(position).get("order_type"));
+                                startActivity(i);
+                            }
+                            else if (orderList.get(position).get("order_type").equals("2")){
+                                Intent i = new Intent(getActivity(), FindOrderDetailSendActivity.class);
+                                i.putExtra("id_order", (String) orderList.get(position).get("order_id"));
+                                i.putExtra("order_type", (String) orderList.get(position).get("order_type"));
+                                startActivity(i);
+                            }
+                            else if(orderList.get(position).get("order_type").equals("3")) {
+                                Intent i = new Intent(getActivity(), FindOrderDetailFoodActivity.class);
+                                i.putExtra("id_order", (String) orderList.get(position).get("order_id"));
+                                i.putExtra("order_type", (String) orderList.get(position).get("order_type"));
+                                startActivity(i);
+                            }
+
                         }
                     });
                 }

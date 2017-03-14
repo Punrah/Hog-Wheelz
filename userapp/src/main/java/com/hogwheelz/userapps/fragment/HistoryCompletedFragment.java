@@ -26,6 +26,9 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.MainActivity;
 import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderFood;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderRide;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderSend;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.AppController;
 import com.hogwheelz.userapps.activity.adapter.HistorySwipeListAdapter;
@@ -141,9 +144,22 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
 
                 if(orderList.get(position).status.contentEquals("Complete")||orderList.get(position).status.contentEquals("Cancel")) {
 
-                    Intent i = new Intent(getActivity(), ViewOrder.class);
-                    i.putExtra("id_order", orderList.get(position).id_order);
-                    startActivity(i);
+                    if (orderList.get(position).orderType == 1) {
+                        Intent i = new Intent(getActivity(), ViewOrderRide.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
+                    }
+                    else if (orderList.get(position).orderType == 2) {
+                        Intent i = new Intent(getActivity(), ViewOrderSend.class);
+                        i.putExtra("id_order", (String) orderList.get(position).id_order);
+                        startActivity(i);
+                    }
+                    else if(orderList.get(position).orderType==3)
+                        {
+                            Intent i = new Intent(getActivity(), ViewOrderFood.class);
+                            i.putExtra("id_order", (String) orderList.get(position).id_order);
+                            startActivity(i);
+                        }
                 }
             }
         });

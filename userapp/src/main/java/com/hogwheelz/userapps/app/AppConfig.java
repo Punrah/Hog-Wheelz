@@ -11,6 +11,7 @@ public class AppConfig {
 	public static final String URL_REGISTER = "http://31.220.53.232/cms/modul/order/action.php?aksi=register";
 
 	public static final String URL_ORDER_RIDE = "http://31.220.53.232/cms/modul/order/action.php?aksi=input_order_ride";
+	public static final String URL_ORDER_FOOD = "http://31.220.53.232/cms/modul/order/action_food.php?aksi=input_order_food";
 
 	public static final String URL_ORDER_SEND = "http://31.220.53.232/cms/modul/order/action.php?aksi=input_order_send";
 
@@ -73,7 +74,9 @@ public class AppConfig {
 	}
 
 
-	public static String getRestaurantDetail() {
-		return  "http://31.220.53.232/cms/modul/order/action.php?aksi=restaurant";
+	public static String getRestaurantDetail(String idRestaurant) {
+		return  "http://31.220.53.232/cms/modul/order/action.php?aksi=restaurant&&id_restaurant="+idRestaurant;
 	}
+
+
 }

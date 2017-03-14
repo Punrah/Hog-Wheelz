@@ -32,6 +32,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.makeOrder.MakeOrder;
+import com.hogwheelz.userapps.persistence.Restaurant;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class RestaurantDetailActivity extends AppCompatActivity implements OnMap
     View mapView;
     Marker markerRestaurant;
     LatLng location;
-
+Restaurant restaurant;
     LinearLayout linearLayoutOpenHoursComplete;
     List<String> openHoursComplete;
     @Override
@@ -56,12 +57,13 @@ public class RestaurantDetailActivity extends AppCompatActivity implements OnMap
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Details");
         setSupportActionBar(toolbar);
-        Bundle bundle= getIntent().getExtras();
-        location = bundle.getParcelable("location");
-        openHoursComplete = bundle.getStringArrayList("open_hours_complete");
-        String name=bundle.getString("name");
-        String adress=bundle.getString("address");
-        String phone =bundle.getString("phone");
+        restaurant = getIntent().getParcelableExtra("restaurant");
+
+        location = restaurant.location;
+        openHoursComplete = restaurant.openHourComplete;
+        String name=restaurant.name;
+        String adress=restaurant.address;
+        String phone =restaurant.photo;
 
 
         buildGoogleApiClient();
