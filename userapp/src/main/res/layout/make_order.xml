@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,50 +8,75 @@
     android:fitsSystemWindows="true"
     tools:context="com.hogwheelz.userapps.activity.makeOrder.MakeOrder">
 
+
+
+
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.NoActionBar.AppBarOverlay">
+        android:layout_height="wrap_content">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"/>
+            app:layout_scrollFlags="scroll|enterAlways"
+            android:gravity="left">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/back"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/back"
+                    />
+                <ImageView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/logo"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ride_white"
+                    />
+            </RelativeLayout>
+
+            </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
-    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/content_main"
+
+    <fragment
+        android:layout_below="@id/app_bar"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context="com.hogwheelz.userapps.activity.makeOrder.MakeOrder">
-
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".activity.makeOrder.MakeOrder" />
+        tools:context=".activity.makeOrder.MakeOrder" />
 
 
         <LinearLayout
+            android:layout_margin="5dp"
+            android:background="@drawable/border_shadow"
+            android:layout_below="@id/app_bar"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:layout_margin="10dp"
             android:gravity="top"
             android:id="@+id/address">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:padding="2dp">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/green_marker"
+                    android:layout_marginRight="5dp"/>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -59,19 +85,20 @@
                     android:layout_weight="8"
                     >
                     <TextView
-                        android:text="pick-up"
-                        android:background="@color/wallet_holo_blue_light"
+                        android:text="PICK-UP"
                         android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"/>
 
                     <TextView
-                        android:text="pick-up addres"
-                        android:background="@color/wallet_holo_blue_light"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textStyle="italic"
                         android:id="@+id/textView_pickup_address"
-                        android:layout_weight="1" />
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="choose your pick-up"
+                        android:textSize="16sp" />
 
                     <LinearLayout
                         android:orientation="horizontal"
@@ -81,19 +108,30 @@
                         android:background="@color/white"/>/>
 
                 </LinearLayout>
-                <android.support.v7.widget.AppCompatButton
+                <ImageView
+                    android:layout_margin="3dp"
                     android:id="@+id/pickup_note_button"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/note"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/note_inactive"
                     android:layout_weight="1"/>
 
             </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/softgray"/>
 
             <LinearLayout
+                android:padding="2dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="40dp"
+                    android:layout_marginRight="5dp"
+                    android:src="@drawable/red_marker"/>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -101,21 +139,21 @@
                     android:id="@+id/dropoff_button"
                     android:layout_weight="9"
                     >
+                    <TextView
+                        android:text="DROP-OFF"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"/>
 
                     <TextView
-                        android:text="drop-off"
-                        android:background="@color/green"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textStyle="italic"
+                        android:text="Choose your drop-off"
                         android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:text="drop-off address"
-                        android:background="@color/green"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:id="@+id/textView_dropoff_address"
-                        android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/textView_dropoff_address"/>
 
                     <LinearLayout
                         android:orientation="horizontal"
@@ -124,52 +162,189 @@
                         android:layout_height="wrap_content"
                         android:background="@color/white"/>
                 </LinearLayout>
-                <android.support.v7.widget.AppCompatButton
+                <ImageView
+                    android:layout_margin="3dp"
                     android:id="@+id/dropoff_note_button"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/note"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/note_inactive"
                     android:layout_weight="1"/>
             </LinearLayout>
 
         </LinearLayout>
 
-        <LinearLayout
-            android:orientation="vertical"
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:background="@drawable/border_shadow"
+        android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="bottom"
-            android:id="@+id/order">
-
+            android:id="@+id/order_layout"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false">
             <LinearLayout
-                android:id="@+id/select"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:background="@color/softgray"
-                android:orientation="vertical">
+                android:padding="5dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/distance_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DISTANCE"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0KM"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+            </LinearLayout>
+            <LinearLayout
+                android:gravity="right"
+                android:padding="5dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+
+                    android:id="@+id/fare_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FARE "
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    tools:text="R0,00" />
+            </LinearLayout>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/softgray"/>
+
+        <TableRow
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_gravity="center"
+                android:orientation="horizontal"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:gravity="left|center"
-                    >
+                    android:id="@+id/bike_button"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/img_bike"
+                        android:layout_margin="5dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/motor_ride_gray"/>
+
                     <TextView
-                        android:id="@+id/price"
+                        android:id="@+id/text_bike"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:text="Choose your drop-off above"/>
+                        android:textSize="14sp"
+                        android:text="Bike"/>
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/car_button"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/img_car"
+                        android:layout_margin="5dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/car_ride_gray"/>
+                    <TextView
+                        android:id="@+id/text_car"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:text="Car"/>
                 </LinearLayout>
 
-                <android.support.v7.widget.AppCompatButton
-                    android:id="@+id/book_button"
+            </LinearLayout>
+            <LinearLayout
+                android:layout_weight="4"
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_margin="3dp"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:text="ORDER"
-                    android:background="@color/green"
-                    />
+                    android:layout_height="match_parent"
+                    android:src="@drawable/order_inactive"
+                    android:id="@+id/book_button"/>
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:padding="3dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+
+                    <RadioButton
+                        android:id="@+id/radio_hogpay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:text="HOG PAY"
+                        />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:padding="3dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp">
+                    <RadioButton
+                        android:id="@+id/radio_cash"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CASH"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+
 
             </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
+        </TableRow>
 
-</android.support.design.widget.CoordinatorLayout>
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

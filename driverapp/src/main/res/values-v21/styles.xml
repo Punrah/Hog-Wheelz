@@ -1,9 +1,0 @@
-<resources>
-
-    <style name_driver="AppTheme.NoActionBar">
-        <item name_driver="windowActionBar">false</item>
-        <item name_driver="windowNoTitle">true</item>
-        <item name_driver="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name_driver="android:statusBarColor">@android:color/transparent</item>
-    </style>
-</resources>

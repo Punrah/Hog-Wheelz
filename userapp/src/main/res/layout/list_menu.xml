@@ -1,27 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
     android:background="@color/white"
     android:layout_marginBottom="1dp">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/menu_name"
-            android:layout_margin="10dp"
-            android:layout_alignParentLeft="true"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nama Menu"
-            android:textSize="24dp"/>
-        <ImageView
-            android:layout_margin="10dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_alignParentRight="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/right"/>
-    </RelativeLayout>
-    </FrameLayout>
+        <LinearLayout
+            android:layout_weight="5"
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/menu_name"
+                android:layout_margin="10dp"
+                android:layout_alignParentLeft="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nama Menu"
+                android:textSize="24dp"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center">
+                <ImageView
+                    android:src="@drawable/right"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"/>
+        </LinearLayout>
+    </LinearLayout>
+

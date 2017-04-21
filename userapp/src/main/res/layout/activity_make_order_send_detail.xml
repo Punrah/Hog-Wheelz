@@ -18,16 +18,48 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"/>
+            app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay">
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:id="@+id/back"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/back"
+                    />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:id="@+id/category"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/white"
+                    android:text="Add Details"
+                    />
+            </LinearLayout>
+            </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
-    <ScrollView
-        android:id="@+id/scrollViewSend"
-        android:layout_below="@+id/app_bar_send"
+    <Button
+        android:textColor="@color/white"
+        android:id="@+id/button_detail_send"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button_detail_send">
+        android:background="@color/colorAccent"
+        android:text="ORDER"
+        android:textSize="18dp"
+        android:layout_alignParentBottom="true"/>
+
+    <ScrollView
+        android:layout_below="@id/app_bar_send"
+        android:id="@+id/scrollViewSend"
+        android:layout_above="@id/button_detail_send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,7 +68,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/softgray"
+                android:background="@drawable/border_shadow"
                 android:layout_margin="5dp"
                 android:orientation="vertical"
                 >
@@ -46,12 +78,17 @@
                     android:background="@color/white"
                     android:layout_margin="1dp">
                     <TextView
+                        android:textColor="@color/black"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_margin="15dp"
-                        android:textSize="18dp"
+                        android:textSize="14dp"
                         android:text="ITEM DESCRIPTION"/>
                 </LinearLayout>
+                <LinearLayout
+                    android:background="@color/softgray"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -60,9 +97,10 @@
                     android:layout_margin="1dp">
 
                     <android.support.v7.widget.AppCompatEditText
+                        android:background="@android:color/transparent"
                         android:id="@+id/description_send"
                         android:hint="Description of goods"
-                        android:layout_margin="10dp"
+                        android:layout_margin="15dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
@@ -72,85 +110,188 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/softgray"
+                android:background="@drawable/border_shadow"
                 android:layout_margin="5dp"
                 android:orientation="vertical"
                 >
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
                     android:layout_margin="1dp">
                     <TextView
-                        android:layout_width="match_parent"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="15dp"
-                        android:textSize="18dp"
+                        android:textSize="14sp"
                         android:text="SENDER"/>
-                </LinearLayout>
 
+                    <ImageView
+                        android:layout_centerVertical="true"
+                        android:id="@+id/sender_contact"
+                        android:layout_margin="5dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/phonebook"/>
+                </RelativeLayout>
                 <LinearLayout
+                    android:background="@color/softgray"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+                <LinearLayout
+                    android:padding="5dp"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:layout_margin="1dp">
+                    android:layout_margin="1dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_marginLeft="10dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/active_my_account"/>
 
                     <android.support.v7.widget.AppCompatEditText
-                        android:id="@+id/sender_name_send"
-                        android:hint="Sender Name"
-                        android:layout_margin="10dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                            android:background="@android:color/transparent"
+                            android:layout_margin="15dp"
+                            android:id="@+id/sender_name_send"
+                            android:hint="Sender Name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
+                    android:layout_height="1dp">
+                    <LinearLayout
+                        android:layout_weight="3"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        />
+                    <LinearLayout
+                        android:background="@color/softgray"
+                        android:layout_weight="15"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        />
+                    </LinearLayout>
+
+                <LinearLayout
+                    android:padding="5dp"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:layout_margin="1dp">
+                    android:layout_margin="1dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_marginLeft="10dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/phone"/>
 
                     <android.support.v7.widget.AppCompatEditText
+                        android:background="@android:color/transparent"
+                        android:layout_margin="15dp"
                         android:id="@+id/sender_phone_send"
                         android:hint="Sender Phone"
-                        android:layout_margin="10dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
-                <LinearLayout
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border_shadow"
+                android:layout_margin="5dp"
+                android:orientation="vertical"
+                >
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
                     android:layout_margin="1dp">
                     <TextView
-                        android:layout_width="match_parent"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="15dp"
-                        android:textSize="18dp"
+                        android:textSize="14sp"
                         android:text="RECEIVER"/>
-                </LinearLayout>
-
+                    <ImageView
+                        android:layout_centerVertical="true"
+                        android:id="@+id/receiver_contact"
+                        android:layout_margin="5dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/phonebook"/>
+                </RelativeLayout>
                 <LinearLayout
+                    android:background="@color/softgray"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+                <LinearLayout
+                    android:padding="5dp"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:layout_margin="1dp">
+                    android:layout_margin="1dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_marginLeft="10dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/active_my_account"/>
 
-                    <android.support.v7.widget.AppCompatEditText
-                        android:id="@+id/receiver_name_send"
-                        android:hint="Receiver Name"
-                        android:layout_margin="10dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        <android.support.v7.widget.AppCompatEditText
+                            android:layout_margin="15dp"
+                            android:background="@android:color/transparent"
+                            android:id="@+id/receiver_name_send"
+                            android:hint="Receiver Name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
+                    android:layout_height="1dp">
+                    <LinearLayout
+                        android:layout_weight="2"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        />
+                    <LinearLayout
+                        android:background="@color/softgray"
+                        android:layout_weight="11"
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        />
+                </LinearLayout>
+                <LinearLayout
+                    android:padding="5dp"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:layout_margin="1dp">
-
+                    android:layout_margin="1dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_marginLeft="10dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/phone"/>
                     <android.support.v7.widget.AppCompatEditText
+                        android:layout_margin="15dp"
+                        android:background="@android:color/transparent"
                         android:id="@+id/receiver_phone_send"
                         android:hint="Receiver Phone"
-                        android:layout_margin="10dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
@@ -159,60 +300,113 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/softgray"
-                android:layout_margin="5dp"
-                android:orientation="vertical"
-                >
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:layout_margin="1dp">
+                android:layout_height="wrap_content">
 
-                    <TextView
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border_shadow"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    >
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="15dp"
-                        android:textSize="18dp"
-                        android:text="PRICE"/>
-                </LinearLayout>
+                        android:background="@color/white"
+                        android:layout_margin="1dp">
 
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:layout_margin="1dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:text="DISTANCE"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:background="@color/softgray"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"/>
 
-                    <TextView
-                        android:layout_gravity="center|left"
-                        android:text="TOTAL"
-                        android:textSize="18dp"
-                        android:layout_margin="15dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:id="@+id/price_send"
-                        android:layout_gravity="center|right"
-                        android:text="Rp.1000"
-                        android:textSize="18dp"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="15dp"/>
-                </FrameLayout>
+                        android:background="@color/white"
+                        android:layout_margin="1dp">
 
+                        <TextView
+                            android:id="@+id/distance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:background="@android:color/transparent"
+                            android:text="(0KM)"
+                            android:textColor="@color/black"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border_shadow"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    >
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white"
+                        android:layout_margin="1dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="FARE "
+                            android:textSize="14sp" />
+                        <TextView
+                            android:id="@+id/payment_type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="BY HOGPAY"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:background="@color/softgray"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"/>
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white"
+                        android:layout_margin="1dp">
+
+                        <TextView
+                            android:id="@+id/price"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:background="@android:color/transparent"
+                            android:text="R0.00"
+                            android:textColor="@color/black"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
     </ScrollView>
-    <Button
-        android:id="@+id/button_detail_send"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/green"
-        android:text="ORDER"
-        android:textSize="18dp"
-        android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>

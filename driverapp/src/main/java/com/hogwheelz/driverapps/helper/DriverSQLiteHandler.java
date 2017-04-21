@@ -24,7 +24,7 @@ public class DriverSQLiteHandler extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 
 	// Database Name
-	private static final String DATABASE_NAME = "hogDB";
+	private static final String DATABASE_NAME = "hogDB_message";
 
 	// Login table name
 	private static final String TABLE_DRIVER = "driver_hogwheelz";

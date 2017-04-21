@@ -2,65 +2,30 @@ package com.hogwheelz.userapps.activity.ViewOrder;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.FindDriverActivity;
-import com.hogwheelz.userapps.activity.MainActivity;
-import com.hogwheelz.userapps.activity.NotifActivity;
-import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
-import com.hogwheelz.userapps.app.Config;
-import com.hogwheelz.userapps.helper.HttpHandler;
-import com.hogwheelz.userapps.persistence.Order;
-import com.hogwheelz.userapps.persistence.OrderRide;
-import com.hogwheelz.userapps.util.NotificationUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.hogwheelz.userapps.activity.main.RootActivity;
+import com.hogwheelz.userapps.activity.makeOrder.CancelReasonActivity;
 
 
-public abstract class ViewOrder extends NotifActivity
+public abstract class ViewOrder extends RootActivity
         implements  GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = ViewOrder.class.getSimpleName();
@@ -84,23 +49,54 @@ public abstract class ViewOrder extends NotifActivity
     LinearLayout linearLayoutDropoffNote;
 
     LinearLayout linearLayoutOrderActive;
-    LinearLayout linearLayoutOrderInactive;
 
     TextView textViewPickupNote;
     TextView textViewDropoffNote;
     TextView textViewStatus;
+    TextView textViewPlat;
+    TextView textViewDistance;
+
+    ImageView vehicle;
+    TextView paymentType;
 
 
     Marker pickUpMarker;
     Marker dropOffMarker;
     Marker driverMarker;
 
-    Button buttonCancel;
+    ImageView buttonCancel;
+
+    LinearLayout buttonDetail;
+    TextView textViewButtonDetail;
+    LinearLayout linearLayoutDetail;
+    LinearLayout linearLayoutIsiDetail;
+    ImageView back;
+
+    TextView textViewDistanceLabel;
+    TextView textViewFareLabel;
+
+    ImageView imageViewDriver;
+    ImageView imageViewCall;
+    ImageView imageViewText;
 
     String idOrder;
     int orderType;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     AlertDialog.Builder alert;
+
+
+    ImageView star1;
+    ImageView star2;
+    ImageView star3;
+    ImageView star4;
+    ImageView star5;
+
+    ImageView star1a;
+    ImageView star2a;
+    ImageView star3a;
+    ImageView star4a;
+    ImageView star5a;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +105,13 @@ public abstract class ViewOrder extends NotifActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Driver Found");
         setSupportActionBar(toolbar);
+        back = (ImageView) findViewById(R.id.back);
+        back.setOnClickListener(new View.OnClickListener() {
 
+            public void onClick(View view) {
+                ViewOrder.super.onBackPressed();
+            }
+        });
 
 
         buildGoogleApiClient();
@@ -121,27 +123,48 @@ public abstract class ViewOrder extends NotifActivity
         mapView = mapFragment.getView();
 
 
-
+        linearLayoutDetail = (LinearLayout) findViewById(R.id.detail);
+        linearLayoutIsiDetail = (LinearLayout) findViewById(R.id.isi_detail);
 
         textViewDriverName=(TextView) findViewById(R.id.driver_name);
         textViewIdOrder=(TextView) findViewById(R.id.id_order);
         textViewPrice=(TextView) findViewById(R.id.price);
+        textViewPlat= (TextView) findViewById(R.id.plat);
+        textViewDistanceLabel = (TextView) findViewById(R.id.distance_label);
+        textViewFareLabel = (TextView) findViewById(R.id.fare_label);
 
 
         textViewPickUpAddres=(TextView) findViewById(R.id.textView_pickup_address);
         textViewDropOffAddress=(TextView) findViewById(R.id.textView_dropoff_address);
         textViewStatus=(TextView) findViewById(R.id.status);
+        textViewDistance=(TextView) findViewById(R.id.distance);
+
+        imageViewDriver=(ImageView) findViewById(R.id.img_driver);
+
+        buttonDetail = (LinearLayout) findViewById(R.id.button_detail);
+        textViewButtonDetail = (TextView) findViewById(R.id.details_button);
 
         linearLayoutPickupNote=(LinearLayout) findViewById(R.id.pickup_note_edittext);
         linearLayoutDropoffNote=(LinearLayout) findViewById(R.id.dropoff_note_edittext);
 
         linearLayoutOrderActive=(LinearLayout) findViewById(R.id.order_active);
-        linearLayoutOrderInactive=(LinearLayout) findViewById(R.id.order_inactive);
+
+        vehicle =(ImageView) findViewById(R.id.vehicle);
+        paymentType = (TextView) findViewById(R.id.payment_type);
+
+        imageViewCall = (ImageView) findViewById(R.id.call_driver);
+        imageViewText= (ImageView) findViewById(R.id.text_driver);
+
+        star1 = (ImageView) findViewById(R.id.star1);
+        star2 = (ImageView) findViewById(R.id.star2);
+        star3 = (ImageView) findViewById(R.id.star3);
+        star4 = (ImageView) findViewById(R.id.star4);
+        star5 = (ImageView) findViewById(R.id.star5);
 
         textViewPickupNote=new TextView(this);
         textViewDropoffNote=new TextView(this);
 
-        buttonCancel=(Button) findViewById(R.id.cancel_accepted_order);
+        buttonCancel=(ImageView) findViewById(R.id.cancel_accepted_order);
 
 
 
@@ -156,72 +179,7 @@ public abstract class ViewOrder extends NotifActivity
     public abstract void initializeOrder();
 
 
-    public void cancelAcceptedOrder() {
-        // Tag used to cancel the request
-        String tag_string_req = "cancel_accepted_order";
 
-
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.CANCEL_ACCEPTED_ORDER, new Response.Listener<String>() {
-
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
-
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-                    String msg = jObj.getString("msg");
-
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-                        finish();
-                        Toast.makeText(ViewOrder.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else if (status.contentEquals("2"))
-                    {
-                        Toast.makeText(ViewOrder.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        // Error in login. Get the error message
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_order",idOrder);
-
-                return params;
-            }
-
-        };
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
-    }
 
 
     @Override
@@ -254,7 +212,7 @@ public abstract class ViewOrder extends NotifActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
+        setConditionLocation();
 
         if (mapView != null &&
                 mapView.findViewById(Integer.parseInt("1")) != null) {
@@ -266,7 +224,7 @@ public abstract class ViewOrder extends NotifActivity
             // position on right bottom
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0,0,0,500);
+            layoutParams.setMargins(0,0,0,10);
         }
 
 
@@ -303,9 +261,128 @@ public abstract class ViewOrder extends NotifActivity
     public abstract void getOrderDetail();
 
 
+    public void cancelOrder()
+    {
+        Intent i = new Intent(ViewOrder.this, CancelReasonActivity.class);
+        i.putExtra("id_order",idOrder);
+        startActivityForResult(i,1);
+    }
+
+
 
     @Override
     protected void onStop() {
         super.onStop();
     }
+
+    @Override
+    public void setPermissionLocation() {
+        mMap.setMyLocationEnabled(true);
+    }
+
+
+    public  void  setStar(int count)
+    {
+        if(count==0)
+        {
+            star1.setImageResource(R.drawable.star_gray);
+            star2.setImageResource(R.drawable.star_gray);
+            star3.setImageResource(R.drawable.star_gray);
+            star4.setImageResource(R.drawable.star_gray);
+            star5.setImageResource(R.drawable.star_gray);
+        }
+        if(count==1)
+        {
+            star1.setImageResource(R.drawable.yellow_star);
+            star2.setImageResource(R.drawable.star_gray);
+            star3.setImageResource(R.drawable.star_gray);
+            star4.setImageResource(R.drawable.star_gray);
+            star5.setImageResource(R.drawable.star_gray);
+        }
+        if(count==2)
+        {
+            star1.setImageResource(R.drawable.yellow_star);
+            star2.setImageResource(R.drawable.yellow_star);
+            star3.setImageResource(R.drawable.star_gray);
+            star4.setImageResource(R.drawable.star_gray);
+            star5.setImageResource(R.drawable.star_gray);
+        }
+        if(count==3)
+        {
+            star1.setImageResource(R.drawable.yellow_star);
+            star2.setImageResource(R.drawable.yellow_star);
+            star3.setImageResource(R.drawable.yellow_star);
+            star4.setImageResource(R.drawable.star_gray);
+            star5.setImageResource(R.drawable.star_gray);
+        }
+        if(count==4)
+        {
+            star1.setImageResource(R.drawable.yellow_star);
+            star2.setImageResource(R.drawable.yellow_star);
+            star3.setImageResource(R.drawable.yellow_star);
+            star4.setImageResource(R.drawable.yellow_star);
+            star5.setImageResource(R.drawable.star_gray);
+        }
+        if(count==5)
+        {
+            star1.setImageResource(R.drawable.yellow_star);
+            star2.setImageResource(R.drawable.yellow_star);
+            star3.setImageResource(R.drawable.yellow_star);
+            star4.setImageResource(R.drawable.yellow_star);
+            star5.setImageResource(R.drawable.yellow_star);
+        }
+    }
+
+    public  void  setStar2(int count)
+    {
+        if(count==0)
+        {
+            star1a.setImageResource(R.drawable.star_gray);
+            star2a.setImageResource(R.drawable.star_gray);
+            star3a.setImageResource(R.drawable.star_gray);
+            star4a.setImageResource(R.drawable.star_gray);
+            star5a.setImageResource(R.drawable.star_gray);
+        }
+        if(count==1)
+        {
+            star1a.setImageResource(R.drawable.yellow_star);
+            star2a.setImageResource(R.drawable.star_gray);
+            star3a.setImageResource(R.drawable.star_gray);
+            star4a.setImageResource(R.drawable.star_gray);
+            star5a.setImageResource(R.drawable.star_gray);
+        }
+        if(count==2)
+        {
+            star1a.setImageResource(R.drawable.yellow_star);
+            star2a.setImageResource(R.drawable.yellow_star);
+            star3a.setImageResource(R.drawable.star_gray);
+            star4a.setImageResource(R.drawable.star_gray);
+            star5a.setImageResource(R.drawable.star_gray);
+        }
+        if(count==3)
+        {
+            star1a.setImageResource(R.drawable.yellow_star);
+            star2a.setImageResource(R.drawable.yellow_star);
+            star3a.setImageResource(R.drawable.yellow_star);
+            star4a.setImageResource(R.drawable.star_gray);
+            star5a.setImageResource(R.drawable.star_gray);
+        }
+        if(count==4)
+        {
+            star1a.setImageResource(R.drawable.yellow_star);
+            star2a.setImageResource(R.drawable.yellow_star);
+            star3a.setImageResource(R.drawable.yellow_star);
+            star4a.setImageResource(R.drawable.yellow_star);
+            star5a.setImageResource(R.drawable.star_gray);
+        }
+        if(count==5)
+        {
+            star1a.setImageResource(R.drawable.yellow_star);
+            star2a.setImageResource(R.drawable.yellow_star);
+            star3a.setImageResource(R.drawable.yellow_star);
+            star4a.setImageResource(R.drawable.yellow_star);
+            star5a.setImageResource(R.drawable.yellow_star);
+        }
+    }
 }
+

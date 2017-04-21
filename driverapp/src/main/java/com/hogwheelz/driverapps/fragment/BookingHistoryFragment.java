@@ -1,5 +1,6 @@
 package com.hogwheelz.driverapps.fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,19 +12,15 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.driverapps.R;
-import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderActivity;
+import com.hogwheelz.driverapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderFoodActivity;
 import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderRideActivity;
 import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.adapter.HistorySwipeListAdapter;
 import com.hogwheelz.driverapps.app.AppConfig;
-import com.hogwheelz.driverapps.app.AppController;
+import com.hogwheelz.driverapps.helper.HttpHandler;
 import com.hogwheelz.driverapps.persistence.DriverGlobal;
 import com.hogwheelz.driverapps.persistence.Order;
 
@@ -69,92 +66,111 @@ public class BookingHistoryFragment extends BookingFragmentUp  implements SwipeR
     }
 
     public void fetchOrder() {
-        orderList = new ArrayList<>();
-        adapter = new HistorySwipeListAdapter(getActivity(), orderList);
-        listView.setAdapter(adapter);
+        new fetchOrder().execute();
+    }
 
-        // showing refresh animation before making http call
-        swipeRefreshLayout.setRefreshing(true);
+    private class fetchOrder extends MyAsyncTask {
+        JSONArray response;
 
-        // appending offset to url
-        String url = AppConfig.getBookingHistoryURL(DriverGlobal.getDriver(getActivity().getApplicationContext()).idDriver);
+        @Override
+        protected Void doInBackground(Void... params) {
+            String url = AppConfig.getBookingHistoryURL(DriverGlobal.getDriver(getActivity().getApplicationContext()).idDriver);
+            HttpHandler sh = new HttpHandler();
+            String jsonStr = sh.makeServiceCall(url);
+            if (jsonStr != null) {
+                try {
+                    response = new JSONArray(jsonStr);
+                    isSucces=true;
 
-        // Volley's json array request object
-        JsonArrayRequest req = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
+                } catch (final JSONException e) {
+                    emsg="Json parsing error: " + e.getMessage();
+                }
+            } else {
+                emsg="Couldn't get json from server.";
 
-                        if (response.length() > 0) {
-
-                            for (int i = 0; i < response.length(); i++) {
-                                try {
-
-                                    // Getting JSON Array node
-                                    JSONObject c = response.getJSONObject(i);
-
-                                    Order order = new Order();
-                                    order.id_order = c.getString("id_order");
-                                    order.dropoffAddress = c.getString("address");
-                                    order.status = c.getString("status");
-                                    order.orderDate = c.getString("order_date");
-                                    order.orderType = c.getInt("order_type");
-
-                                    orderList.add(0, order);
-                                } catch (JSONException e) {
-                                    Log.e(TAG, "JSON Parsing error: " + e.getMessage());
-                                }
-                            }
-
-                            adapter.notifyDataSetChanged();
-                        }
-
-                        // stopping swipe refresh
-                        swipeRefreshLayout.setRefreshing(false);
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Server Error: " + error.getMessage());
-
-                Toast.makeText(getActivity().getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-
-                // stopping swipe refresh
-                swipeRefreshLayout.setRefreshing(false);
             }
-        });
+            return null;
+        }
+
+        @Override
+        public Context getContext() {
+            return getActivity();
+        }
+
+
+
+        @Override
+        public void setSuccesPostExecute() {
+            if (response.length() > 0) {
+
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+
+                        // Getting JSON Array node
+                        JSONObject c = response.getJSONObject(i);
+
+                        Order order = new Order();
+                        order.id_order = c.getString("id_order");
+                        order.dropoffAddress = c.getString("address");
+                        order.status = c.getString("status");
+                        order.orderDate = c.getString("order_date");
+                        order.orderType = c.getInt("order_type");
+
+                        orderList.add(0, order);
+                    } catch (JSONException e) {
+                        Log.e(TAG, "JSON Parsing error: " + e.getMessage());
+                    }
+                }
+
+                adapter.notifyDataSetChanged();
+            }
+
+        }
+
+        @Override
+        public void setPreloading() {
+            orderList = new ArrayList<>();
+            adapter = new HistorySwipeListAdapter(getActivity(), orderList);
+            listView.setAdapter(adapter);
+
+            // showing refresh animation before making http call
+            swipeRefreshLayout.setRefreshing(true);
+        }
+
+        @Override
+        public void setPostLoading() {
+            // stopping swipe refresh
+            // stopping swipe refresh
+            swipeRefreshLayout.setRefreshing(false);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Start an alpha animation for clicked item
-                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                animation1.setDuration(800);
-                view.startAnimation(animation1);
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            // Start an alpha animation for clicked item
+            Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+            animation1.setDuration(800);
+            view.startAnimation(animation1);
 
-                if (orderList.get(position).orderType == 1) {
-                    Intent i = new Intent(getActivity(), ViewOrderRideActivity.class);
-                    i.putExtra("id_order", (String) orderList.get(position).id_order);
-                    startActivity(i);
-                }
-                else if (orderList.get(position).orderType == 2) {
-                    Intent i = new Intent(getActivity(), ViewOrderSendActivity.class);
-                    i.putExtra("id_order", (String) orderList.get(position).id_order);
-                    startActivity(i);
-                }
-                else if(orderList.get(position).orderType==3)
-                {
-                    Intent i = new Intent(getActivity(), ViewOrderFoodActivity.class);
-                    i.putExtra("id_order", (String) orderList.get(position).id_order);
-                    startActivity(i);
-                }
+            if (orderList.get(position).orderType == 1) {
+                Intent i = new Intent(getActivity(), ViewOrderRideActivity.class);
+                i.putExtra("id_order", (String) orderList.get(position).id_order);
+                startActivity(i);
             }
-        });
+            else if (orderList.get(position).orderType == 2) {
+                Intent i = new Intent(getActivity(), ViewOrderSendActivity.class);
+                i.putExtra("id_order", (String) orderList.get(position).id_order);
+                startActivity(i);
+            }
+            else if(orderList.get(position).orderType==3)
+            {
+                Intent i = new Intent(getActivity(), ViewOrderFoodActivity.class);
+                i.putExtra("id_order", (String) orderList.get(position).id_order);
+                startActivity(i);
+            }
+        }
+    });
 
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(req);
+        }
     }
 
 

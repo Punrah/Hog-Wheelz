@@ -14,10 +14,25 @@ public class AppConfig {
 	public static final String URL_ORDER_FOOD = "http://31.220.53.232/cms/modul/order/action_food.php?aksi=input_order_food";
 
 	public static final String URL_ORDER_SEND = "http://31.220.53.232/cms/modul/order/action.php?aksi=input_order_send";
+    public static final String GET_REASON = "http://31.220.53.232/cms/modul/order/action.php?aksi=getcancelreason";
 
-	public static final String getPriceURL(String origins,String destinations)
+	public static final String UPLOAD_TRANSFER = "http://31.220.53.232/cms/modul/order/action_topup.php?aksi=insert_topup";
+	public static final String URL_VERIFY =  "http://31.220.53.232/cms/modul/order/action.php?aksi=cek_token";
+
+	public static final String URL_IMAGE = "http://31.220.53.232/cms/image/restaurant_image/";
+	public static final String URL_DRIVER_IMAGE = "http://31.220.53.232/cms/image/driver_image/";
+    public static final String UPLOAD_HELP ="http://31.220.53.232/cms/modul/order/action.php?aksi=insert_help" ;
+	public static final String URL_CALL_CENTER ="http://31.220.53.232/cms/modul/order/action.php?aksi=callcenter" ;
+	public static final String URL_EDIT_PROFILE = "http://31.220.53.232/cms/modul/order/action.php?aksi=edit_profile";
+	public static final String URL_VERIFY_PROFILE = "http://31.220.53.232/cms/modul/order/action.php?aksi=cek_token_profile";
+    public static final String URL_CHANGE_PASSWORD = "http://31.220.53.232/cms/modul/order/action.php?aksi=change_password";
+	public static final String UPLOAD_RATING ="http://31.220.53.232/cms/modul/order/action.php?aksi=insert_rating" ;
+    public static final String UPLOAD_NEED_HELP = "http://31.220.53.232/cms/modul/order/action.php?aksi=insert_help_order";
+	public static final String UPLOAD_VOUCHER = "http://31.220.53.232/cms/modul/order/action.php?aksi=insert_voucher";
+
+	public static final String getPriceURL(String origins,String destinations,String orderType,String vehicle)
 	{
-		return "http://31.220.53.232/cms/modul/order/action.php?aksi=request_price&origins="+origins+"&destinations="+destinations;
+		return "http://31.220.53.232/cms/modul/order/action.php?aksi=request_price&origins="+origins+"&destinations="+destinations+"&order_type="+orderType+"&vehicle="+vehicle;
 	}
 
 	public static String getDriverLocationURL(String location)
@@ -54,11 +69,11 @@ public class AppConfig {
 	}
 
 	public static String getExploreURL() {
-		return "http://31.220.53.232/cms/modul/order/action.php?aksi=coba_explore";
+		return "http://31.220.53.232/cms/modul/order/action.php?aksi=explore";
 	}
 
 	public static String getListRestaurantURL() {
-		return "http://31.220.53.232/cms/modul/order/action.php?aksi=list_restaurant";
+		return "http://31.220.53.232/cms/modul/order/action.php?aksi=list_restaurant_explore";
 	}
 
 	public static String getSignatureDishesURL() {
@@ -78,5 +93,16 @@ public class AppConfig {
 		return  "http://31.220.53.232/cms/modul/order/action.php?aksi=restaurant&&id_restaurant="+idRestaurant;
 	}
 
+	public static String getBalanceURL(String idCustomer) {
+		return  "http://31.220.53.232/cms/modul/order/action.php?aksi=getsaldo&&id_customer="+idCustomer;
+	}
 
+	public static String getWebURL(String action) {
+		return  "http://31.220.53.232/cms/modul/order/action_topup.php?aksi="+action;
+	}
+
+
+    public static String getTransactionURL() {
+		return "http://31.220.53.232/cms/modul/order/action.php?aksi=list_hogpay";
+    }
 }

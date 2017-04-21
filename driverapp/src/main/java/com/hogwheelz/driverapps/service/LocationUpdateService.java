@@ -85,7 +85,7 @@ public class LocationUpdateService extends Service implements
     /**
      * Represents a geographical location.
      */
-    protected Location mCurrentLocation;
+    public static Location mCurrentLocation;
     public static boolean isEnded = false;
     private ArrayList<LocationVo> mLocationData;
 
@@ -334,6 +334,11 @@ public class LocationUpdateService extends Service implements
 
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    public static Location getLocation()
+    {
+        return mCurrentLocation;
     }
 
 

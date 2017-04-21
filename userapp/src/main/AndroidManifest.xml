@@ -10,30 +10,29 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:name=".app.AppController"
         android:allowBackup="true"
         android:icon="@drawable/logo"
-        android:label="Hog Wheelz"
+        android:label="Hogwheelz"
+        android:largeHeap="true"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBar">
-        <activity
-            android:name=".activity.LoginActivity"
-            android:label="HogWheelz"
-            android:theme="@style/AppTheme.NoActionBar">
+        android:theme="@style/Hogwheelz">
+        <activity android:name=".activity.main.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".activity.MainActivity"
-            android:label="Hog Wheelz" />
-        <activity
-            android:name=".activity.RegisterActivity"
-            android:label="Hog Wheelz" />
+        <activity android:name=".activity.main.MainActivity" />
+        <activity android:name=".activity.main.RegisterActivity" />
+        <activity android:name=".activity.other.VerifyActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -46,7 +45,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".activity.FindDriverActivity" />
+        <activity android:name=".activity.other.FindDriverActivity" />
         <activity android:name=".activity.ViewOrder.ViewOrderRide" />
         <activity android:name=".activity.ViewOrder.ViewOrderSend" />
         <activity android:name=".activity.ViewOrder.ViewOrderFood" />
@@ -67,12 +66,8 @@
         </service>
         <!-- ./Firebase Notifications -->
 
-        <activity
-            android:name=".activity.makeOrder.MakeOrderSendActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activity.makeOrder.MakeOrderRideActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".activity.makeOrder.MakeOrderSendActivity" />
+        <activity android:name=".activity.makeOrder.MakeOrderRideActivity" />
         <activity android:name=".activity.makeOrder.MakeOrderSendDetailActivity" />
         <activity android:name=".activity.hogFood.FoodActivity" />
         <activity android:name=".activity.hogFood.ListRestaurantActivity" />
@@ -87,7 +82,18 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".activity.hogFood.MakeOrderFoodActivity"></activity>
+        <activity android:name=".activity.hogFood.MakeOrderFoodActivity" />
+        <activity android:name=".activity.makeOrder.CancelReasonActivity" />
+        <activity android:name=".activity.hogpay.PayActivity" />
+        <activity android:name=".activity.hogpay.WebActivity" />
+        <activity android:name=".activity.hogpay.TopUpActivity" />
+        <activity android:name=".activity.hogpay.VoucherActivity" />
+        <activity android:name=".activity.other.RatingsActivity" />
+        <activity android:name=".activity.other.HelpActivity" />
+        <activity android:name=".activity.account.ChangePasswordActivity" />
+        <activity android:name=".activity.account.EditProfileActivity" />
+        <activity android:name=".activity.hogpay.TransactionActivity" />
+        <activity android:name=".activity.other.NeedHelpActivity"></activity>
     </application>
 
 </manifest>

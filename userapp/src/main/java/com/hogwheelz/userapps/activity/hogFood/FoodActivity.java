@@ -1,42 +1,45 @@
 package com.hogwheelz.userapps.activity.hogFood;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.NotifActivity;
+import com.hogwheelz.userapps.activity.asynctask.ImageAsyncTask;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
+import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
+import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.Explore;
-import com.hogwheelz.userapps.persistence.Item;
-import com.hogwheelz.userapps.persistence.Restaurant;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class FoodActivity extends NotifActivity {
+public class FoodActivity extends RootActivity {
 
     private String TAG = FoodActivity.class.getSimpleName();
+
+    ImageView back;
     private LinearLayout linearLayoutExploreGanjil;
     private LinearLayout linearLayoutExploreGenap;
-    private LinearLayout linearLayoutNearMe;
-    private LinearLayout linearLayoutTopPicks;
+    private LinearLayout linearLayout1;
+    private LinearLayout linearLayout2;
+    private LinearLayout linearLayout3;
+    private LinearLayout linearLayout4;
+    private LinearLayout linearLayout5;
+    private LinearLayout linearLayout6;
+
     public Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,29 +48,31 @@ public class FoodActivity extends NotifActivity {
 
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Hogfood");
         setSupportActionBar(toolbar);
+
+        back = (ImageView) findViewById(R.id.back);
+
+
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FoodActivity.super.onBackPressed();
+            }
+        });
 
         linearLayoutExploreGanjil =(LinearLayout) findViewById(R.id.explore_ganjil);
         linearLayoutExploreGenap =(LinearLayout) findViewById(R.id.explore_genap);
 
-        linearLayoutNearMe = (LinearLayout) findViewById(R.id.button_nearme);
-        linearLayoutTopPicks = (LinearLayout) findViewById(R.id.button_top_picks);
+        linearLayout1 = (LinearLayout) findViewById(R.id.linear1);
+        linearLayout2 = (LinearLayout) findViewById(R.id.linear2);
+        linearLayout3 = (LinearLayout) findViewById(R.id.linear3);
+        linearLayout4 = (LinearLayout) findViewById(R.id.linear4);
+        linearLayout5 = (LinearLayout) findViewById(R.id.linear5);
+        linearLayout6 = (LinearLayout) findViewById(R.id.linear6);
 
-        linearLayoutNearMe.setOnClickListener(new View.OnClickListener() {
 
-            public void onClick(View view) {
-                // Start an alpha animation for clicked item
-                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                animation1.setDuration(800);
-                view.startAnimation(animation1);
-                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
-                startActivity(i);
-            }
-
-        });
-
-        linearLayoutTopPicks.setOnClickListener(new View.OnClickListener() {
+        linearLayout1.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
                 // Start an alpha animation for clicked item
@@ -75,105 +80,207 @@ public class FoodActivity extends NotifActivity {
                 animation1.setDuration(800);
                 view.startAnimation(animation1);
                 Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The One");
+                startActivity(i);
+            }
+
+        });
+        linearLayout2.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The Two");
+                startActivity(i);
+            }
+
+        });
+        linearLayout3.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The Three");
+                startActivity(i);
+            }
+
+        });
+        linearLayout4.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The Four");
+                startActivity(i);
+            }
+
+        });
+        linearLayout5.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The Five");
+                startActivity(i);
+            }
+
+        });
+        linearLayout6.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                view.startAnimation(animation1);
+                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                i.putExtra("category","The Sex");
                 startActivity(i);
             }
 
         });
 
-        fetchExplore();
+
+
+
+        new fetchExplore().execute();
     }
 
-    private void fetchExplore() {
+    @Override
+    public void setPermissionLocation() {
 
-        // appending offset to url
-        String url = AppConfig.getExploreURL();
+    }
 
-        // Volley's json array request object
-        JsonArrayRequest req = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
+    @Override
+    public void setPermissionCall() {
 
-                        if (response.length() > 0) {
+    }
 
-                            for (int i = 0; i < response.length(); i++) {
-                                try {
 
-                                    // Getting JSON Array node
-                                    JSONObject c = response.getJSONObject(i);
+    private class fetchExplore extends MyAsyncTask {
+        JSONArray response;
 
-                                    Explore explore = new Explore();
-                                    explore.id = c.getString("id");
-                                    explore.name = c.getString("nama");
 
-                                    if(i%2==0)
-                                    {
-                                        LayoutInflater inflater = getLayoutInflater();
-                                        FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_explore, linearLayoutExploreGenap, false);
-                                        TextView name = (TextView) convertView.findViewById(R.id.explore_name);
 
-                                        name.setText(String.valueOf(explore.name));
 
-                                        convertView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        protected Void doInBackground(Void... params) {
+            String url = AppConfig.getExploreURL();
+            HttpHandler sh = new HttpHandler();
+            String jsonStr = sh.makeServiceCall(url);
+            if (jsonStr != null) {
+                try {
+                    response = new JSONArray(jsonStr);
+                    isSucces=true;
 
-                                            public void onClick(View view) {
-                                                // Start an alpha animation for clicked item
-                                                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                                                animation1.setDuration(800);
-                                                view.startAnimation(animation1);
-                                                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
-                                                startActivity(i);
-                                            }
-
-                                        });
-
-                                        linearLayoutExploreGenap.addView(convertView);
-                                    }
-                                    else if(i%2==1)
-                                    {
-                                        LayoutInflater inflater = getLayoutInflater();
-                                        FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_explore, linearLayoutExploreGanjil, false);
-                                        TextView name = (TextView) convertView.findViewById(R.id.explore_name);
-
-                                        name.setText(String.valueOf(explore.name));
-
-                                        convertView.setOnClickListener(new View.OnClickListener() {
-
-                                            public void onClick(View view) {
-                                                // Start an alpha animation for clicked item
-                                                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                                                animation1.setDuration(800);
-                                                view.startAnimation(animation1);
-                                                Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
-                                                startActivity(i);
-                                            }
-
-                                        });
-
-                                        linearLayoutExploreGanjil.addView(convertView);
-                                    }
-
-                                } catch (JSONException e) {
-                                    Log.e(TAG, "JSON Parsing error: " + e.getMessage());
-                                }
-                            }
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Server Error: " + error.getMessage());
-
-                Toast.makeText(FoodActivity.this, error.getMessage(), Toast.LENGTH_LONG).show();
+                } catch (final JSONException e) {
+                    emsg="Json parsing error: " + e.getMessage();
+                }
+            } else {
+                emsg="Couldn't get json from server.";
 
             }
-        });
+            return null;
+        }
+
+        @Override
+        public void setMyPostExecute() {
+
+        if (response.length() > 0) {
+
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+
+                            // Getting JSON Array node
+                            JSONObject c = response.getJSONObject(i);
+
+                            Explore explore = new Explore();
+                            explore.id = c.getString("id_kategori_explore");
+                            explore.name = c.getString("name");
+                            explore.photo = c.getString("foto");
+
+                            if(i%2==0)
+                            {
+                                LayoutInflater inflater = getLayoutInflater();
+                                FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_explore, linearLayoutExploreGenap, false);
+                                TextView name = (TextView) convertView.findViewById(R.id.explore_name);
+                                ImageView imageView = (ImageView) convertView.findViewById(R.id.img_explore) ;
+
+                                name.setText(String.valueOf(explore.name));
+                                imageView.setTag(explore.photo);
+                                new ImageAsyncTask().execute(imageView);
+                                final String catFood = String.valueOf(explore.name);
+                                final String idCat = String.valueOf(explore.id);
+                                convertView.setOnClickListener(new View.OnClickListener() {
+
+                                    public void onClick(View view) {
+                                        // Start an alpha animation for clicked item
+                                        Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                                        animation1.setDuration(800);
+                                        view.startAnimation(animation1);
+                                        Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                                        i.putExtra("category",catFood);
+                                        i.putExtra("id_category",idCat);
+                                        startActivity(i);
+                                    }
+
+                                });
+
+                                linearLayoutExploreGenap.addView(convertView);
+                            }
+                            else if(i%2==1)
+                            {
+                                LayoutInflater inflater = getLayoutInflater();
+                                FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_explore, linearLayoutExploreGanjil, false);
+                                TextView name = (TextView) convertView.findViewById(R.id.explore_name);
+                                ImageView imageView = (ImageView) convertView.findViewById(R.id.img_explore) ;
+
+                                name.setText(String.valueOf(explore.name));
+                                imageView.setTag(explore.photo);
+                                new ImageAsyncTask().execute(imageView);
+                                name.setText(String.valueOf(explore.name));
+                                final String catFood = String.valueOf(explore.name);
+
+                                convertView.setOnClickListener(new View.OnClickListener() {
+
+                                    public void onClick(View view) {
+                                        // Start an alpha animation for clicked item
+                                        Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                                        animation1.setDuration(800);
+                                        view.startAnimation(animation1);
+                                        Intent i = new Intent(FoodActivity.this, ListRestaurantActivity.class);
+                                        i.putExtra("category",catFood);
+                                        startActivity(i);
+                                    }
+
+                                });
+
+                                linearLayoutExploreGanjil.addView(convertView);
+                            }
+
+                        } catch (JSONException e) {
+                            Toast.makeText(FoodActivity.this, "JSON Parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            }
+
+        @Override
+        public Context getContext() {
+            return FoodActivity.this;
+        }
 
 
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(req);
     }
 }

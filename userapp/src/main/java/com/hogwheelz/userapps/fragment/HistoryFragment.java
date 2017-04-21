@@ -1,10 +1,12 @@
 package com.hogwheelz.userapps.fragment;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,22 +43,12 @@ public class HistoryFragment extends Fragment {
 
         tabLayout = (TabLayout) myInflater.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        setupTabIcons();
+        tabLayout.setTabTextColors(ContextCompat.getColor(getActivity(), R.color.white), ContextCompat.getColor(getActivity(), R.color.colorAccent));
 
         return myInflater;
     }
 
-    private void setupTabIcons() {
 
-        TextView tabOne = (TextView) LayoutInflater.from(getActivity()).inflate(R.layout.custom_tab, null);
-        tabOne.setText("Progress");
-        tabLayout.getTabAt(0).setCustomView(tabOne);
-
-        TextView tabTwo = (TextView) LayoutInflater.from(getActivity()).inflate(R.layout.custom_tab, null);
-        tabTwo.setText("Completed");
-        tabLayout.getTabAt(1).setCustomView(tabTwo);
-
-    }
 
     /**
      * Adding fragments to ViewPager
@@ -64,8 +56,8 @@ public class HistoryFragment extends Fragment {
      */
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
-        adapter.addFrag(new HistoryProgressFragment(), "ONE");
-        adapter.addFrag(new HistoryCompletedFragment(), "TWO");
+        adapter.addFrag(new HistoryProgressFragment(), "In Progress");
+        adapter.addFrag(new HistoryCompletedFragment(), "Completed");
         viewPager.setAdapter(adapter);
     }
 

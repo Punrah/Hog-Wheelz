@@ -1,13 +1,17 @@
 package com.hogwheelz.userapps.activity.ViewOrder;
 
-import android.os.AsyncTask;
-import android.util.Log;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
@@ -18,11 +22,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.asynctask.DriverImageAsyncTask;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
+import com.hogwheelz.userapps.activity.other.NeedHelpActivity;
 import com.hogwheelz.userapps.app.AppConfig;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.Item;
 import com.hogwheelz.userapps.persistence.OrderFood;
-import com.hogwheelz.userapps.persistence.OrderSend;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,12 +45,13 @@ public class ViewOrderFood extends ViewOrder
     private static final String TAG = ViewOrderFood.class.getSimpleName();
 
     OrderFood order;
+    List<TextView> textViewNote;
 
-    private LinearLayout linearLayoutDetail;
     LinearLayout convertView;
     boolean detailOpen=false;
-    Button buttonDetail;
     List<TextView> textViewsQty;
+
+
     @Override
     public void initializeOrder() {
         order=new OrderFood();
@@ -52,13 +60,16 @@ public class ViewOrderFood extends ViewOrder
     @Override
     public void adjustCamera()
     {
+
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
 
         builder.include(pickUpMarker.getPosition());
         builder.include(dropOffMarker.getPosition());
         if(!order.driver.idDriver.contentEquals("0")) {
-            builder.include(driverMarker.getPosition());
+            if(!(order.status.contentEquals("Cancel")||order.status.contentEquals("Complete"))) {
+                builder.include(driverMarker.getPosition());
+            }
         }
 
 
@@ -66,21 +77,103 @@ public class ViewOrderFood extends ViewOrder
 
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.25); // offset from edges of the map 12% of screen
+        int padding = (int) (height * 0.3); // offset from edges of the map 12% of screen
+        int padding2 = (int) (width * 0.1); // offset from edges of the map 12% of screen
 
+        mMap.setPadding(padding2,padding,padding2,padding);
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,0);
 
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
-        mMap.animateCamera(cu);
+        mMap.moveCamera(cu);
     }
 
     public void setAllTextView()
     {
         textViewDriverName.setText(order.driver.name);
-        textViewIdOrder.setText(order.id_order);
-        textViewPrice.setText(order.getPriceString());
+        textViewIdOrder.setText(order.getOrderNo());
+        textViewPrice.setText(Formater.getPrice(String.valueOf(order.totalPrice)));
+        imageViewDriver.setTag(order.driver.photo);
+        new DriverImageAsyncTask().execute(imageViewDriver);
+        setStar(order.driver.rating);
+
+        textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
         textViewPickUpAddres.setText(order.pickupAddress);
         textViewDropOffAddress.setText(order.dropoffAddress);
-        textViewStatus.setText(order.status);
+        textViewStatus.setText(order.getStatusString());
+        textViewPlat.setText(order.driver.plat);
+        textViewDistanceLabel.setText("DISTANCE ");
+        textViewFareLabel.setText("FARE ");
+
+        imageViewCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderFood.this);
+
+                builder.setTitle("Call Customer");
+                builder.setMessage("Do you want to call "+order.driver.phone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        setConditionCall();
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
+        imageViewText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderFood.this);
+
+                builder.setTitle("Text Customer");
+                builder.setMessage("Do you want to text "+order.driver.phone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        Uri sms_uri = Uri.parse("smsto:"+order.driver.phone);
+                        Intent sms_intent = new Intent(Intent.ACTION_SENDTO, sms_uri);
+                        startActivity(sms_intent);
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
+
+        if(order.vehicle.contentEquals("bike"))
+        {
+            vehicle.setImageResource(R.drawable.motor_ride_yellow);
+        }
+        else if(order.vehicle.contentEquals("car"))
+        {
+            vehicle.setImageResource(R.drawable.car_ride_yellow);
+        }
+
+
+        paymentType.setText("BY "+order.payment_type.toUpperCase()+" ");
 
         if(!order.pickupNote.equals(""))
         {
@@ -102,23 +195,54 @@ public class ViewOrderFood extends ViewOrder
             linearLayoutDropoffNote.addView(textViewDropoffNote);
         }
 
-        if(order.status.contentEquals("Cancel")||order.status.contentEquals("Complete"))
+        if(order.status.contentEquals("Complete"))
         {
-            linearLayoutOrderInactive.setVisibility(View.VISIBLE);
-            linearLayoutOrderActive.setVisibility(View.INVISIBLE);
+            linearLayoutOrderActive.removeAllViewsInLayout();
+            LayoutInflater inflater = getLayoutInflater();
+            convertView = (LinearLayout) inflater.inflate(R.layout.need_help_star, linearLayoutOrderActive, false);
+            TextView textViewNeedHelp = (TextView) convertView.findViewById(R.id.need_help);
+            star1a=(ImageView) convertView.findViewById(R.id.star1);
+            star2a=(ImageView) convertView.findViewById(R.id.star2);
+            star3a=(ImageView) convertView.findViewById(R.id.star3);
+            star4a=(ImageView) convertView.findViewById(R.id.star4);
+            star5a=(ImageView) convertView.findViewById(R.id.star5);
+            setStar2(order.rating);
+
+            linearLayoutOrderActive.addView(convertView);
+            textViewNeedHelp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(ViewOrderFood.this, NeedHelpActivity.class);
+                    i.putExtra("id_order",idOrder);
+                    startActivity(i);
+                }
+            });
+        }
+        else if(order.status.contentEquals("Cancel"))
+        {
+            linearLayoutOrderActive.removeAllViewsInLayout();
+            LayoutInflater inflater = getLayoutInflater();
+            convertView = (LinearLayout) inflater.inflate(R.layout.need_help, linearLayoutOrderActive, false);
+            TextView textViewNeedHelp = (TextView) convertView.findViewById(R.id.need_help);
+            linearLayoutOrderActive.addView(convertView);
+            textViewNeedHelp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(ViewOrderFood.this, NeedHelpActivity.class);
+                    i.putExtra("id_order",idOrder);
+                    startActivity(i);
+                }
+            });
         }
         else {
-            linearLayoutOrderInactive.setVisibility(View.INVISIBLE);
-            linearLayoutOrderActive.setVisibility(View.VISIBLE);
             buttonCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    cancelAcceptedOrder();
+                    cancelOrder();
                 }
             });
         }
 
-        buttonDetail = (Button) findViewById(R.id.button_detail_send);
         buttonDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,31 +254,51 @@ public class ViewOrderFood extends ViewOrder
 
     }
 
+
     private void setDetailButton()
     {
         if(detailOpen)
         {
-                    linearLayoutDetail.removeView(convertView);
+            textViewButtonDetail.setText("Tap to see details");
+                    viewPrice();
                     detailOpen=false;
         }
         else
         {
+            textViewButtonDetail.setText("Tap to close details");
                     viewDetail();
                     detailOpen=true;
         }
 
     }
 
+    private void viewPrice() {
+        linearLayoutDetail.removeAllViews();
+        linearLayoutDetail.addView(linearLayoutIsiDetail);
+    }
+
 
     private void viewDetail()
     {
-        linearLayoutDetail = (LinearLayout) findViewById(R.id.detail);
+        linearLayoutDetail.removeAllViews();
+
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_food_detail, linearLayoutDetail, false);
+
+        TextView cost = (TextView) convertView.findViewById(R.id.cost);
+        TextView deliveryFee = (TextView) convertView.findViewById(R.id.delivery_fee);
+        TextView distance = (TextView) convertView.findViewById(R.id.distance);
+        TextView totalPrice = (TextView) convertView.findViewById(R.id.total_price);
+        TextView paymentType = (TextView) convertView.findViewById(R.id.payment_type);
 
         LinearLayout linearLayoutItem = (LinearLayout) convertView.findViewById(R.id.list_item);
         textViewsQty = new ArrayList<TextView>();
         linearLayoutItem.removeAllViews();
+
+        textViewNote = new ArrayList<TextView>();
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
 
         if (order.item.size() > 0) {
 
@@ -163,31 +307,43 @@ public class ViewOrderFood extends ViewOrder
                 FrameLayout convertView = (FrameLayout) inflater2.inflate(R.layout.list_item_detail, linearLayoutItem, false);
                 TextView name = (TextView) convertView.findViewById(R.id.item_name);
                 TextView price = (TextView) convertView.findViewById(R.id.price);
-                TextView description = (TextView) convertView.findViewById(R.id.item_description);
+                TextView note = (TextView) convertView.findViewById(R.id.note_item);
                 textViewsQty.add((TextView) convertView.findViewById(R.id.qty));
                 name.setText(String.valueOf(order.item.get(i).name));
-                price.setText(String.valueOf(order.item.get(i).price));
+                price.setText(Formater.getPrice(String.valueOf(order.item.get(i).price)));
+                note.setText(order.item.get(i).notes);
+
                 textViewsQty.get(i).setText(String.valueOf(order.item.get(i).qty));
                 linearLayoutItem.addView(convertView);
             }
         }
+
+        cost.setText(Formater.getPrice(String.valueOf(order.totalPrice-order.price)));
+        deliveryFee.setText(Formater.getPrice(order.getPriceString()));
+        totalPrice.setText(Formater.getPrice(String.valueOf(order.totalPrice)));
+        distance.setText(" ("+ Formater.getDistance(order.getDistanceString())+")");
+        paymentType.setText(" by "+order.payment_type);
         linearLayoutDetail.addView(convertView);
     }
 
     @Override
     public void getOrderDetail() {
-        new getOrderSendDetail().execute();
+        new getOrderFoodDetail().execute();
+    }
+
+    @Override
+    public void setPermissionCall() {
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setData(Uri.parse("tel:" + order.driver.phone));
+        startActivity(intent);
     }
 
 
-    private class getOrderSendDetail extends AsyncTask<Void, Void, Void> {
+    private class getOrderFoodDetail extends MyAsyncTask {
+
+        JSONArray itemJArray;
+
         @Override
-
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
@@ -196,6 +352,7 @@ public class ViewOrderFood extends ViewOrder
             String jsonStr = sh.makeServiceCall(url);
             if (jsonStr != null) {
                 try {
+                    isSucces=true;
 
                     JSONObject orderJson = new JSONObject(jsonStr);
 
@@ -206,50 +363,91 @@ public class ViewOrderFood extends ViewOrder
                         order.driver.plat = orderJson.getString("plat");
                         order.driver.phone = orderJson.getString("driver_phone");
                         order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
+                        order.driver.photo = orderJson.getString("foto");
+                        order.driver.rating = orderJson.getInt("rating_driver");
                     }
                     order.status = orderJson.getString("status_order");
                     order.dropoffAddress = orderJson.getString("destination_address");
                     order.pickupAddress=orderJson.getString("origin_address");
                     order.price=orderJson.getInt("price");
-                    order.pickupNote=orderJson.getString("note");
-                    order.dropoffNote=orderJson.getString("note");
+                    order.totalPrice=orderJson.getInt("total_price");
+                    order.distance=orderJson.getDouble("distance");
+                    order.pickupNote=orderJson.getString("note_from");
+                    order.dropoffNote=orderJson.getString("note_to");
                     order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
                     order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    JSONArray itemJArray = orderJson.getJSONArray("item");
+                    order.vehicle = orderJson.getString("vehicle");
+                    order.payment_type = orderJson.getString("payment_type");
+                    order.orderType=orderJson.getInt("order_type");
+                    order.rating = orderJson.getInt("rating_order");
+                    itemJArray = orderJson.getJSONArray("item");
+
                     for(int i=0;i<itemJArray.length();i++) {
                         JSONObject itemJson = itemJArray.getJSONObject(i);
                         Item item = new Item();
-                        item.idItem=itemJson.getString("id_item");
+
+                        item.idItem = itemJson.getString("id_item");
+
                         item.name = itemJson.getString("item_name");
                         item.price = itemJson.getInt("price");
                         item.qty = itemJson.getInt("quantity");
+                        item.notes = itemJson.getString("notes");
                         order.item.add(item);
                     }
 
-
                 } catch (final JSONException e) {
 
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
+                    emsg= "Order Detail: " + e.getMessage();
                 }
             } else {
-                Log.e(TAG, "Json null");
+                emsg="json null";
 
             }
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition));
-            dropOffMarker= mMap.addMarker(new MarkerOptions().position(order.dropoofPosition));
+
+        @Override
+        public Context getContext() {
+            return ViewOrderFood.this;
+        }
+
+        @Override
+        public void setMyPostExecute() {
+            pickUpMarker = mMap.addMarker(new MarkerOptions()
+                    .position(order.pickupPosition)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker)));
+            dropOffMarker= mMap.addMarker(new MarkerOptions()
+                    .position(order.dropoofPosition)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.red_marker)));
             if(!order.driver.idDriver.contentEquals("0")) {
-                driverMarker = mMap.addMarker(new MarkerOptions()
-                        .position(order.driver.driverLocation)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
+                if(order.vehicle.contentEquals("car"))
+                { driverMarker = mMap.addMarker(new MarkerOptions()
+                            .position(order.driver.driverLocation)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_car)));
+                }
+                else if(order.vehicle.contentEquals("bike"))
+                {
+                    driverMarker = mMap.addMarker(new MarkerOptions()
+                            .position(order.driver.driverLocation)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_motor)));
+                }
+
             }
             setAllTextView();
             adjustCamera();
+        }
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                Intent i = new Intent(ViewOrderFood.this,ViewOrderFood.class);
+                i.putExtra("id_order",idOrder);
+                startActivity(i);
+                finish();
+            }
         }
     }
 

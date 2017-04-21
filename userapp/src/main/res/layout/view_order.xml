@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,247 +9,436 @@
     tools:context="com.hogwheelz.userapps.activity.makeOrder.MakeOrder">
 
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.NoActionBar.AppBarOverlay">
+        android:layout_height="wrap_content">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"/>
+            app:layout_scrollFlags="scroll|enterAlways"
+            android:gravity="left">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/back"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/back"
+                    />
+                <ImageView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/logo"
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ride_white"
+                    />
+            </RelativeLayout>
+
+        </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
 
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
+        <fragment
+            android:layout_below="@id/app_bar"
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
 
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:background="@drawable/border_shadow"
+        android:layout_below="@id/app_bar"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="top"
+        android:id="@+id/address">
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_margin="10dp"
-            android:gravity="top"
-            android:id="@+id/address">
+            android:orientation="horizontal"
+            android:padding="2dp">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="40dp"
+                android:src="@drawable/green_marker"
+                android:layout_marginRight="5dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/pickup_button"
+                android:layout_weight="8"
+                >
+                <TextView
+                    android:text="PICK-UP"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/pickup_button"
-                    >
-                    <TextView
-                        android:text="pick-up"
-                        android:background="@color/wallet_holo_blue_light"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:layout_weight="1" />
+                    android:textSize="12sp"/>
 
-                    <TextView
-                        android:text="pick-up addres"
-                        android:background="@color/wallet_holo_blue_light"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:id="@+id/textView_pickup_address"
-                        android:layout_weight="1" />
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:id="@+id/pickup_note_edittext"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/white"/>/>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <LinearLayout
+                <TextView
+                    android:id="@+id/textView_pickup_address"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/dropoff_button"
-                    >
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
 
-                    <TextView
-                        android:text="drop-off"
-                        android:background="@color/green"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:layout_weight="1" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:id="@+id/pickup_note_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"/>/>
 
-                    <TextView
-                        android:text="drop-off address"
-                        android:background="@color/green"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:id="@+id/textView_dropoff_address"
-                        android:layout_weight="1" />
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:id="@+id/dropoff_note_edittext"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/white"/>
-                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>
         <LinearLayout
-            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/softgray"/>
+
+        <LinearLayout
+            android:padding="2dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@color/white"
-            android:id="@+id/pastbooking"
-            >
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="40dp"
+                android:layout_marginRight="5dp"
+                android:src="@drawable/red_marker"/>
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:orientation="vertical">
-                <Button
-                    android:id="@+id/button_detail_send"
-                    android:layout_gravity="center"
-                    android:layout_width="80dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/red"
-                    />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/detail"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-            </LinearLayout>
-            <TextView
-                android:id="@+id/price"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="right|center"
-                android:text="price"
-                android:textSize="24dp"
-                android:background="@color/softgray"/>
-            <android.support.v7.widget.LinearLayoutCompat
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:background="@color/softgray">
-                <LinearLayout
-                    android:layout_width="60dp"
-                    android:layout_height="match_parent">
-                    <android.support.v7.widget.AppCompatImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:layout_margin="10dp"
-                        android:background="@drawable/driver_pic"/>
-                </LinearLayout>
-                <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/dropoff_button"
+                android:layout_weight="9"
+                >
+                <TextView
+                    android:text="DROP-OFF"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="left|center"
-                    android:orientation="vertical">
-                    <android.support.v7.widget.AppCompatTextView
-                        android:id="@+id/driver_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:gravity="left|center" />
-                    <android.support.v7.widget.AppCompatTextView
-                        android:id="@+id/id_order"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:gravity="left|center" />
-                    <android.support.v7.widget.AppCompatTextView
-                        android:id="@+id/status"
-                        android:layout_width="match_parent"
-                        android:layout_height="25dp"
-                        android:gravity="left|center" />
-                </LinearLayout>
+                    android:textSize="12sp"/>
 
-            </android.support.v7.widget.LinearLayoutCompat>
-            <FrameLayout
+                <TextView
+                    android:id="@+id/textView_dropoff_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:orientation="horizontal"
+                    android:id="@+id/dropoff_note_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:background="@drawable/border_shadow"
+        android:id="@+id/pastbooking"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+        <LinearLayout
+            android:id="@+id/button_detail"
+            android:background="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/details_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="Tap to see details"
+                android:textColor="@color/white"
+                android:textSize="14dp" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/detail"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false">
+            <LinearLayout
+                android:id="@+id/isi_detail"
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+            <LinearLayout
+                android:padding="5dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/distance_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="right"
+                android:padding="5dp"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+
+                    android:id="@+id/fare_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/payment_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+            </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="1dp"
+android:background="@color/softgray"/>
+
+        <LinearLayout
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:background="@color/white">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center">
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/img_driver"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:src="@drawable/active_my_account"
+                    app:civ_border_width="1dp"
+                    app:civ_border_color="@color/black"/>
                 <LinearLayout
-                    android:layout_gravity="center"
-                    android:id="@+id/order_inactive"
-                    android:layout_width="match_parent"
+                    android:padding="2dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <TextView
-                        android:gravity="center"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="DETAIL"/>
+                    <ImageView
+                        android:id="@+id/star1"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/star_gray"/>
+                    <ImageView
+                        android:id="@+id/star2"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/star_gray"/>
+                    <ImageView
+                        android:id="@+id/star3"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/star_gray"/>
+                    <ImageView
+                        android:id="@+id/star4"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/star_gray"/>
+                    <ImageView
+                        android:id="@+id/star5"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/star_gray"/>
                 </LinearLayout>
-                <LinearLayout
+
+            </LinearLayout>
+            <LinearLayout
+                android:background="@color/softgray"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"/>
+            <LinearLayout
+                android:layout_weight="4"
+                android:paddingLeft="5dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/driver_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/order_active"
-                    android:orientation="horizontal">
-                    <android.support.v7.widget.LinearLayoutCompat
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center">
-                        <android.support.v7.widget.AppCompatButton
-                            android:id="@+id/cancel_accepted_order"
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content"
-                            android:text="cancel"
-                            android:textColor="@color/red"/>
-                    </android.support.v7.widget.LinearLayoutCompat>
-                    <android.support.v7.widget.LinearLayoutCompat
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center">
-                        <android.support.v7.widget.AppCompatImageView
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content"
-                            android:background="@drawable/phone"/>
-                    </android.support.v7.widget.LinearLayoutCompat>
-                    <android.support.v7.widget.LinearLayoutCompat
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center">
-                        <android.support.v7.widget.AppCompatImageView
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content"
-                            android:background="@drawable/message"/>
-                    </android.support.v7.widget.LinearLayoutCompat>
+                    android:layout_marginBottom="1dp"
+                    android:gravity="left|center"
+                    android:textSize="14dp" />
+
+                <TextView
+                    android:id="@+id/id_order"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="left|center"
+                    android:textSize="14dp" />
+
+                <TextView
+                    android:id="@+id/plat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="left|center"
+                    android:textSize="14dp" />
+
+                <TextView
+                    android:id="@+id/status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="left|center"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:background="@color/softgray"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"/>
+            <LinearLayout
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/vehicle"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"/>
 
 
-
-                </LinearLayout>
-            </FrameLayout>
-
+            </LinearLayout>
 
         </LinearLayout>
+        <LinearLayout
+            android:background="@color/softgray"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+        <LinearLayout
+                android:padding="1dp"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:id="@+id/order_active"
+                android:orientation="horizontal">
+                <LinearLayout
+
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/cancel_accepted_order"
+                        android:layout_height="30dp"
+                        android:layout_width="30dp"
+                        android:text="cancel"
+                        android:src="@drawable/cancel"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:background="@color/softgray"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+            <LinearLayout
+                android:id="@+id/text"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/text_driver"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/chat"
+                    android:text="cancel" />
+            </LinearLayout>
+                <LinearLayout
+                    android:background="@color/softgray"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+            <LinearLayout
+                android:id="@+id/call"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/call_driver"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/phone"
+                    android:text="cancel" />
+            </LinearLayout>
 
 
-    </FrameLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+            </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

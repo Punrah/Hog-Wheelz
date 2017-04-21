@@ -6,28 +6,134 @@
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:layout_height="wrap_content">
 
         <android.support.v7.widget.Toolbar
+            android:padding="20dp"
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            />
 
-        <android.support.design.widget.TabLayout
+        <LinearLayout
             android:id="@+id/tabs"
+            android:orientation="horizontal"
+            android:padding="2dp"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/custom_tab_layout_height"
-            app:tabMode="fixed"
-            app:tabGravity="fill"/>
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/button1"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <ImageView
+                    android:id="@+id/icon1"
+                    android:padding="1dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"/>
+
+                <TextView
+                    android:layout_marginTop="1dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home"
+                    android:textSize="14dp"
+                    android:textColor="@color/white"/>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/button2"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <ImageView
+                    android:id="@+id/icon2"
+                    android:padding="1dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="History"
+                    android:textColor="@color/white"
+                    android:textSize="14dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/button3"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+                <ImageView
+                    android:id="@+id/icon3"
+                    android:padding="1dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"/>
+                <TextView
+                    android:layout_marginTop="1dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14dp"
+                    android:text="Payment"
+                    android:textColor="@color/white"/>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/button4"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+                <ImageView
+                    android:id="@+id/icon4"
+                    android:padding="1dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"/>
+                <TextView
+                    android:layout_marginTop="1dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14dp"
+                    android:text="Message"
+                    android:textColor="@color/white"/>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/button5"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+                <ImageView
+                    android:id="@+id/icon5"
+                    android:padding="1dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="Account"
+                    android:textColor="@color/white"
+                    android:textSize="14dp" />
+            </LinearLayout>
+
+        </LinearLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.view.ViewPager
+    <com.hogwheelz.driverapps.activity.adapter.CustomViewPager
         android:id="@+id/viewpager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:layout_height="wrap_content" />
 </LinearLayout>

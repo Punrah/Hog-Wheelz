@@ -90,4 +90,7 @@ public class Item implements Parcelable {
         parcel.writeString(notes);
     }
 
+    public int getItemQty() {
+        return qty;
+    }
 }

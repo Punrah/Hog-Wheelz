@@ -85,4 +85,13 @@ public class Menu implements Parcelable {
         }
 
     };
+
+    public int getMenuQty() {
+        int qty=0;
+        for(int i=0;i<item.size();i++)
+        {
+            qty=qty+item.get(i).getItemQty();
+        }
+        return qty;
+    }
 }

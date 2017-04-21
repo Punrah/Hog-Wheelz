@@ -1,28 +1,20 @@
 package com.hogwheelz.userapps.activity.makeOrder;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,11 +23,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,11 +36,10 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.NotifActivity;
+import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.helper.HttpHandler;
-import com.hogwheelz.userapps.persistence.Order;
-import com.hogwheelz.userapps.persistence.OrderRide;
+import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,13 +49,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public abstract class MakeOrder extends RootActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MakeOrder.class.getSimpleName();
     private static final long SET_INTERVAL = 10 * 1000;
     private static final long FASTEST_INTERVAL = 1 * 1000;
     public Toolbar toolbar;
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     protected GoogleApiClient mGoogleApiClient;
     View mapView;
 
@@ -76,36 +64,56 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
     int PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP = 1;
     int PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF = 2;
 
+    int REQUEST_SEND = 3;
+
+    ImageView back;
+    ImageView logo;
+
     Marker pickUpMarker;
     Marker dropOffMarker;
+
+    TextView textViewDistanceLabel;
+    TextView textViewPriceLabel;
 
     TextView textViewPickUpAddres;
     TextView textViewDropOffAddress;
     TextView textViewPrice;
+    TextView textViewDistance;
+    RadioButton radioHogpay;
+    RadioButton radioCash;
+    ImageView imgCar;
+    ImageView imgBike;
+    LinearLayout buttonBike;
+    LinearLayout buttonCar;
+    String vehicleState="bike";
 
     LinearLayout linearLayoutPickupNote;
     LinearLayout linearLayoutDropoffNote;
-    Button buttonPickupNote;
-    Button buttonDropoffNote;
+    ImageView buttonPickupNote;
+    ImageView buttonDropoffNote;
 
     EditText editTextPickupNote;
     EditText editTextDropoffNote;
 
     boolean isPickupNoteActive;
     boolean isDropoffNoteActive;
-    private static boolean isPickUpAddressSetted, isDropOffAddressSetted;
+    public static boolean isPickUpAddressSetted, isDropOffAddressSetted;
 
     Double driverLocationLat[];
     Double driverLocationLng[];
+    String vehicleType[];
 
-    Button buttonBook;
+    Marker driver[];
 
-    LinearLayout linearLayoutOrder;
+    ImageView buttonBook;
 
 
-    Order order;
+
+
 
     private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
+
+
 
 
 
@@ -115,8 +123,21 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         setContentView(R.layout.make_order);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
 
+        setSupportActionBar(toolbar);
+
+        back = (ImageView) findViewById(R.id.back);
+        logo = (ImageView) findViewById(R.id.logo);
+
         setToolbarTitle();
 
+
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MakeOrder.super.onBackPressed();
+            }
+        });
 
         buildGoogleApiClient();
 
@@ -126,9 +147,19 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         mapFragment.getMapAsync(this);
         mapView = mapFragment.getView();
 
+        textViewDistanceLabel=(TextView) findViewById(R.id.distance_label);
+        textViewPriceLabel=(TextView) findViewById(R.id.fare_label);
         textViewPickUpAddres = (TextView) findViewById(R.id.textView_pickup_address);
         textViewDropOffAddress = (TextView) findViewById(R.id.textView_dropoff_address);
         textViewPrice = (TextView) findViewById(R.id.price);
+        textViewDistance=(TextView) findViewById(R.id.distance);
+        radioHogpay = (RadioButton) findViewById(R.id.radio_hogpay);
+        radioCash = (RadioButton) findViewById(R.id.radio_cash);
+        imgCar =(ImageView) findViewById(R.id.img_car);
+        imgBike= (ImageView) findViewById(R.id.img_bike);
+
+        buttonBike=(LinearLayout) findViewById(R.id.bike_button);
+        buttonCar=(LinearLayout) findViewById(R.id.car_button);
 
         linearLayoutPickupNote = (LinearLayout) findViewById(R.id.pickup_note_edittext);
         linearLayoutDropoffNote = (LinearLayout) findViewById(R.id.dropoff_note_edittext);
@@ -157,7 +188,7 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         isPickupNoteActive = false;
 
 
-        buttonPickupNote = (Button) findViewById(R.id.pickup_note_button);
+        buttonPickupNote = (ImageView) findViewById(R.id.pickup_note_button);
         buttonPickupNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -165,7 +196,7 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
             }
         });
 
-        buttonDropoffNote = (Button) findViewById(R.id.dropoff_note_button);
+        buttonDropoffNote = (ImageView) findViewById(R.id.dropoff_note_button);
         buttonDropoffNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -173,12 +204,93 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
             }
         });
 
+        radioCash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                radioCash.setChecked(true);
+                radioHogpay.setChecked(false);
+            }
+        });
+        radioHogpay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                radioCash.setChecked(false);
+                radioHogpay.setChecked(true);
+            }
+        });
 
-        linearLayoutOrder = (LinearLayout) findViewById(R.id.order);
-        buttonBook = (Button) findViewById(R.id.book_button);
+        buttonBike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bikeView();
+                bikePressed();
+            }
+        });
+        buttonCar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                carView();
+                carPressed();
+            }
+        });
+
+        if(UserGlobal.balance<=0)
+        {
+            radioHogpay.setEnabled(false);
+            radioCash.setChecked(true);
+        }
+
+
+        buttonBook = (ImageView) findViewById(R.id.book_button);
 
         inizializeOrder();
     }
+
+
+    private void bikeView() {
+        vehicleState="bike";
+        setPriceByVehicle();
+        for(int i=0;i<driverLocationLat.length;i++) {
+
+            if(vehicleType[i].contentEquals("car")) {
+                driver[i].setVisible(false);
+            }
+            else
+            {
+                driver[i].setVisible(true);
+            }
+
+        }
+
+    }
+
+    public abstract void setPriceByVehicle();
+
+
+    private void carView() {
+        vehicleState="car";
+        setPriceByVehicle();
+        for(int i=0;i<driverLocationLat.length;i++) {
+
+            if(vehicleType[i].contentEquals("bike")) {
+                driver[i].setVisible(false);
+            }
+            else
+            {
+                driver[i].setVisible(true);
+            }
+        }
+
+    }
+
+    private void bikePressed() {
+        setTypeImage(1);
+    }
+    private void carPressed() {
+        setTypeImage(2);
+    }
+
+
 
     public abstract void setToolbarTitle();
 
@@ -187,14 +299,19 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
     private void setPickupNoteState() {
         if (isPickupNoteActive) {
+            buttonPickupNote.setImageResource(R.drawable.note_inactive);
             linearLayoutPickupNote.removeView(editTextPickupNote);
             isPickupNoteActive = false;
+
         } else if (!isPickupNoteActive) {
+            buttonPickupNote.setImageResource(R.drawable.note_active);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             editTextPickupNote.setHint("add notes");
             editTextPickupNote.setLayoutParams(params);
+            editTextPickupNote.setBackgroundColor(Color.TRANSPARENT);
+            editTextPickupNote.setTextSize(14);
             linearLayoutPickupNote.addView(editTextPickupNote);
             isPickupNoteActive = true;
         }
@@ -203,14 +320,18 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
     private void setDropoffNoteState() {
 
         if (isDropoffNoteActive) {
+            buttonDropoffNote.setImageResource(R.drawable.note_inactive);
             linearLayoutDropoffNote.removeView(editTextDropoffNote);
             isDropoffNoteActive = false;
         } else if (!isDropoffNoteActive) {
+            buttonDropoffNote.setImageResource(R.drawable.note_active);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             editTextDropoffNote.setHint("add notes");
             editTextDropoffNote.setLayoutParams(params);
+            editTextDropoffNote.setBackgroundColor(Color.TRANSPARENT);
+            editTextDropoffNote.setTextSize(14);
             linearLayoutDropoffNote.addView(editTextDropoffNote);
             isDropoffNoteActive = true;
         }
@@ -238,7 +359,7 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
             // position on right bottom
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 0, 500);
+            layoutParams.setMargins(0, 0, 0, 0);
         }
 
     }
@@ -246,78 +367,14 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
-        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,getApplicationContext(),MakeOrder.this)) {
-            getMyLocation();
-        }
-        else
-        {
-            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,PERMISSION_REQUEST_CODE_LOCATION,getApplicationContext(),MakeOrder.this);
-        }
+        setConditionLocation();
 
     }
 
-    private void getMyLocation()
-    {
-        mMap.setMyLocationEnabled(true);
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-
-        if (mLastLocation != null) {
-            lat = mLastLocation.getLatitude();
-            lng = mLastLocation.getLongitude();
-            order.pickupPosition = new LatLng(lat, lng);
-            order.pickupAddress = getAddress(lat, lng);
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition).title(order.pickupAddress));
-            dropOffMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition).title(order.pickupAddress));
-
-            new getDriverLocation().execute();
-            dropOffMarker.setVisible(false);
-            setAwal();
-            adjustCamera();
-            fillPickUpAddress();
-        }
-    }
 
 
-    public  void requestPermission(String strPermission, int perCode, Context _c, Activity _a){
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(_a,strPermission)){
-            Toast.makeText(getApplicationContext(),"GPS permission allows us to access location data. Please allow in App Settings for additional functionality.",Toast.LENGTH_LONG).show();
-        } else {
 
-            ActivityCompat.requestPermissions(_a,new String[]{strPermission},perCode);
-        }
-    }
-
-    public  boolean checkPermission(String strPermission,Context _c,Activity _a){
-        int result = ContextCompat.checkSelfPermission(_c, strPermission);
-        if (result == PackageManager.PERMISSION_GRANTED){
-
-            return true;
-
-        } else {
-
-            return false;
-
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-
-            case PERMISSION_REQUEST_CODE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getMyLocation();
-                } else {
-
-                    Toast.makeText(getApplicationContext(),"Permission Denied, You cannot access location data.",Toast.LENGTH_LONG).show();
-
-                }
-                break;
-
-        }
-    }
 
 
 
@@ -338,7 +395,7 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
     }
 
-    private String getAddress(double latitude, double longitude) {
+    public String getAddress(double latitude, double longitude) {
         StringBuilder result = new StringBuilder();
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -355,7 +412,7 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         return result.toString();
     }
 
-    private class getDriverLocation extends AsyncTask<Void, Void, Void> {
+    public class getDriverLocation extends AsyncTask<Void, Void, Void> {
         @Override
 
 
@@ -380,11 +437,13 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
                     driverLocationLat= new Double[arrayDriverLocation.length()];
                     driverLocationLng= new Double[arrayDriverLocation.length()];
+                    vehicleType = new String[arrayDriverLocation.length()];
                     for(int i=0;i<arrayDriverLocation.length();i++)
                     {
                         JSONObject location=arrayDriverLocation.getJSONObject(i);
                         driverLocationLat[i] = Double.parseDouble(location.getString("lat_cur").toString());
                         driverLocationLng[i] = Double.parseDouble(location.getString("long_cur").toString());
+                        vehicleType[i] = location.getString("vehicle");
                     }
 
                 } catch (final JSONException e) {
@@ -400,19 +459,39 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
 
-            Marker driver[]= new Marker[driverLocationLat.length];
-            for(int i=0;i<driverLocationLat.length;i++) {
-                driver[i] = mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
-            }
+            driver= new Marker[driverLocationLat.length];
+                for(int i=0;i<driverLocationLat.length;i++) {
+
+                    if (vehicleType[i].contentEquals("bike")) {
+
+                        driver[i] = mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_motor)));
+                    } else if (vehicleType[i].contentEquals("car")) {
+
+                        driver[i] = mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_car)));
+                    }
+                }
+
+                if(vehicleState=="bike")
+                {
+                    bikeView();
+                }
+                else if (vehicleState=="car")
+                {
+                    carView();
+                }
+
+
 
             // Dismiss the progress dialog
 
         }
     }
 
-    private void adjustCamera()
+    public void adjustCamera()
     {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -425,43 +504,31 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (height * 0.25); // offset from edges of the map 12% of screen
+        int padding = (int) (height * 0.3); // offset from edges of the map 12% of screen
+        int padding2 = (int) (width * 0.1); // offset from edges of the map 12% of screen
 
-
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
+        mMap.setPadding(padding2,padding,padding2,padding);
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,0);
         mMap.animateCamera(cu);
     }
 
-    private void setAwal()
+    public void setAwal()
     {
-        textViewPrice.setText("Choose your drop off above");
-        linearLayoutOrder.setVisibility(View.INVISIBLE);
+        textViewPrice.setText("");
+        textViewDistance.setText("");
+        radioHogpay.setChecked(false);
+        radioCash.setChecked(true);
+        buttonBook.setImageResource(R.drawable.order_inactive);;
+        setTypeImage(1);
         isDropOffAddressSetted=false;
         isPickUpAddressSetted=false;
     }
 
-    private void fillPickUpAddress()
-    {
-        pickUpMarker.setPosition(order.pickupPosition);
-        pickUpMarker.setTitle(order.pickupAddress);
-        adjustCamera();
-        textViewPickUpAddres.setText(order.pickupAddress);
-        isPickUpAddressSetted=true;
-        setBookingState();
-    }
+    public abstract void setTypeImage(int type);
 
-    private void fillDropOffAddress()
-    {
-        dropOffMarker.setPosition(order.dropoofPosition);
-        dropOffMarker.setTitle(order.dropoffAddress);
-        dropOffMarker.setVisible(true);
-        adjustCamera();
-        textViewDropOffAddress.setText(order.dropoffAddress);
-        isDropOffAddressSetted=true;
-        setBookingState();
-    }
 
-    private void setBookingState()
+
+    public void setBookingState()
     {
         if(isDropOffAddressSetted&&isPickUpAddressSetted) {
 
@@ -469,7 +536,6 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
         }
         else
         {
-            linearLayoutOrder.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -478,10 +544,13 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
     private void callPlaceAutocompleteActivityIntentForPickUp() {
         try {
-            Intent intent =
-                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                            .build(this);
-            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP);
+//            Intent intent =
+//                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
+//                            .build(this);
+//            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP);
+            PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+            startActivityForResult(builder.build(this), PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP);
 //PLACE_AUTOCOMPLETE_REQUEST_CODE is integer for request code
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             // TODO: Handle the error.
@@ -491,10 +560,13 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
     private void callPlaceAutocompleteActivityIntentForDropOff() {
         try {
-            Intent intent =
-                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                            .build(this);
-            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF);
+
+
+            PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+
+
+            startActivityForResult(builder.build(this), PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF);
 //PLACE_AUTOCOMPLETE_REQUEST_CODE is integer for request code
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             // TODO: Handle the error.
@@ -502,44 +574,6 @@ public abstract class MakeOrder extends NotifActivity implements OnMapReadyCallb
 
     }
 
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                order.setPickupPlace(place);
-                fillPickUpAddress();
-
-
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
-
-                textViewPickUpAddres.setText(status.getStatusMessage());
-
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
-        else if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                order.setDropoffPlace(place);
-                fillDropOffAddress();
-
-
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
-                textViewDropOffAddress.setText(status.getStatusMessage());
-
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
-
-    }
 
 
 }

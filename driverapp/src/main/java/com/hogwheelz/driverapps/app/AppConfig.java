@@ -11,6 +11,8 @@ public class AppConfig {
 
 	public static final String ACCEPT_ORDER = "http://31.220.53.232/cms/modul/order/action.php?aksi=accept_order";
 
+	public static final String SKIP_ORDER = "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=skip_order";
+
 	public static final String OTW_ORDER = "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=status_order_otw";
 	public static final String START_ORDER = "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=status_order_start";
 	public static final String COMPLETE_ORDER = "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=status_order_complete";
@@ -27,5 +29,32 @@ public class AppConfig {
 		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=list_order_detail&id_order="+idOrder;
 	}
 
+	public static String getBalanceURL(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=getsaldo&id_driver="+idDriver;
+	}
 
+
+	public static String setStatusOrderOn(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=set_status_order_on&id_driver="+idDriver;
+	}
+
+	public static String setStatusOrderOff(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=set_status_order_off&id_driver="+idDriver;
+	}
+
+	public static String getStatusOrder(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=get_status_order&id_driver="+idDriver;
+	}
+
+	public static String getTotalOrder(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=total_order&id_driver="+idDriver;
+	}
+
+	public static String getTransactionURL() {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=list_hogpay";
+	}
+
+	public static String getRatingsURL(String idDriver) {
+		return "http://31.220.53.232/cms/modul/order/action_driver.php?aksi=view_ratings&id_driver="+idDriver;
+	}
 }

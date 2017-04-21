@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.hogwheelz.userapps.activity.MainActivity;
 import com.hogwheelz.userapps.app.Config;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;

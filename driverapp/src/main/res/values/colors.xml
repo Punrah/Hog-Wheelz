@@ -2,17 +2,19 @@
 <resources>
     <color name="colorPrimary">#dc0b00</color>
     <color name="colorPrimaryDark">#8f8300</color>
-    <color name="colorAccent">#ff0000</color>
+    <color name="colorAccent">#f1c40f</color>
 
-    <color name="green">#00a100</color>
-    <color name="red">#d10700</color>
-    <color name="softgray">#d9d9d9</color>
+    <color name="green">#27ae60</color>
+    <color name="red">#e74c3c</color>
+    <color name="softgray">#e0e0e0</color>
+    <color name="dark">#95a5a6</color>
 
     <color name="bg_login">#26ae90</color>
-    <color name="black">#2e3237</color>
+    <color name="action_bar_color">#000000</color>
     <color name="bg_register">#2e3237</color>
     <color name="bg_main">#428bca</color>
     <color name="white">#ffffff</color>
+    <color name="black">#131313</color>
     <color name="input_login">#222222</color>
     <color name="input_login_hint">#999999</color>
     <color name="input_register">#888888</color>
@@ -26,4 +28,8 @@
 
     <color name="view_bg">#b20e0f</color>
     <color name="btn_bg">#3e4a56</color>
+    <color name="accent_material_dark_1">#f1c40f</color>
+    <color name="background_material_dark">#fafafa</color>
+    <color name="primary_material_light">#212121</color>
+    <color name="primary_dark_material_light">#212121</color>
 </resources>

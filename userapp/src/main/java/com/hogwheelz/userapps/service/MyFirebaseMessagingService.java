@@ -6,9 +6,9 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hogwheelz.userapps.activity.MainActivity;
-import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
+import com.hogwheelz.userapps.activity.main.MainActivity;
 import com.hogwheelz.userapps.app.Config;
+import com.hogwheelz.userapps.helper.SessionManager;
 import com.hogwheelz.userapps.util.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -25,9 +25,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
 
     private NotificationUtils notificationUtils;
+    SessionManager session;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        session = new SessionManager(getApplicationContext());
         Log.e(TAG, "From: " + remoteMessage.getFrom());
 
         if (remoteMessage == null)
@@ -106,14 +108,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 resultIntent.putExtra("message", message);
                 JSONObject jsonPayload = new JSONObject(payload.toString());
                 String idOrder=jsonPayload.getString("id_order");
+                String statusOrder=jsonPayload.getString("status");
                 resultIntent.putExtra("id_order",idOrder);
+                String titleNotif="Order No "+idOrder;
+                if(statusOrder.equals("complete")) {
+                    session.setOrder(idOrder);
+                }
+
 
                 // check for image attachment
                 if (TextUtils.isEmpty(imageUrl)) {
-                    showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);
+                    showNotificationMessage(getApplicationContext(), titleNotif, message, timestamp, resultIntent);
                 } else {
                     // image is present, show notification with image
-                    showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
+                    showNotificationMessageWithBigImage(getApplicationContext(), titleNotif, message, timestamp, resultIntent, imageUrl);
                 }
 
             }

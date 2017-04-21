@@ -1,51 +1,49 @@
 package com.hogwheelz.driverapps.activity.findOrder;
 
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.driverapps.R;
+import com.hogwheelz.driverapps.activity.other.MapsActivity;
+import com.hogwheelz.driverapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.driverapps.app.AppConfig;
-import com.hogwheelz.driverapps.app.AppController;
-import com.hogwheelz.driverapps.helper.HttpHandler;
+import com.hogwheelz.driverapps.app.Formater;
 import com.hogwheelz.driverapps.persistence.Item;
 import com.hogwheelz.driverapps.persistence.OrderFood;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class FindOrderDetailFoodActivity extends FindOrderDetailActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class FindOrderDetailFoodActivity extends FindOrderDetailActivity   {
     private static final String TAG = FindOrderDetailFoodActivity.class.getSimpleName();
  LinearLayout convertView;
     boolean detailOpen=false;
     OrderFood order;
     List<TextView> textViewsQty;
+
+    Location mLastLocation;
+
+
 
     @Override
     public void initializeOrder() {
@@ -58,30 +56,7 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity impleme
     }
 
 
-    public void setDetail() {
-
-        buttonDetail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setDetailButton();
-            }
-        });
-    }
-
-    private void setDetailButton()
-    {
-        if(detailOpen)
-        {
-            linearLayoutDetail.removeView(convertView);
-            detailOpen=false;
-        }
-        else
-        {
-            viewDetail();
-            detailOpen=true;
-        }
-
-    }
+    
 
 
     private void viewDetail()
@@ -89,6 +64,11 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity impleme
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_food_detail, linearLayoutDetail, false);
         LinearLayout linearLayoutItem = (LinearLayout) convertView.findViewById(R.id.list_item);
+        TextView cost = (TextView) convertView.findViewById(R.id.cost);
+        TextView delivery_fee =(TextView) convertView.findViewById(R.id.delivery_fee);
+
+        cost.setText(Formater.getPrice(String.valueOf(order.totalPrice-order.price)));
+        delivery_fee.setText(Formater.getPrice(String.valueOf(order.price)));
         textViewsQty = new ArrayList<TextView>();
         linearLayoutItem.removeAllViews();
 
@@ -99,10 +79,13 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity impleme
                 FrameLayout convertView = (FrameLayout) inflater2.inflate(R.layout.list_item_detail, linearLayoutItem, false);
                 TextView name = (TextView) convertView.findViewById(R.id.item_name);
                 TextView price = (TextView) convertView.findViewById(R.id.price);
-                TextView description = (TextView) convertView.findViewById(R.id.item_description);
+                LinearLayout linearLayoutNote = (LinearLayout) convertView.findViewById(R.id.note_item);
+                TextView textViewNote = new TextView(this);
+                textViewNote.setText(order.item.get(i).notes);
+                linearLayoutNote.addView(textViewNote);
                 textViewsQty.add((TextView) convertView.findViewById(R.id.qty));
                 name.setText(String.valueOf(order.item.get(i).name));
-                price.setText(String.valueOf(order.item.get(i).price));
+                price.setText(Formater.getPrice(String.valueOf(order.item.get(i).price)));
                 textViewsQty.get(i).setText(String.valueOf(order.item.get(i).qty));
                 linearLayoutItem.addView(convertView);
             }
@@ -113,73 +96,106 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity impleme
 
 
 
-    private class getOrderDetail extends AsyncTask<Void, Void, Void> {
+    @Override
+    public void setPermissionLocation() {
+
+    }
+
+    @Override
+    public void setPermissionCall() {
+
+    }
+
+
+    public class getOrderDetail extends MyAsyncTask {
+
         @Override
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
+        public Context getContext() {
+            return FindOrderDetailFoodActivity.this;
         }
-        protected Void doInBackground(Void... arg0) {
 
-            HttpHandler sh = new HttpHandler();
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
             String url = AppConfig.getOrderDetail(idOrder);
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                    JSONObject orderJson = new JSONObject(jsonStr);
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
+
+                            isSucces=true;
+
+                        JSONObject orderJson = obj;
 
 
 
-                    order.id_order=idOrder;
-                    order.user.name= orderJson.getString("cus_name");
-                    order.user.Phone=orderJson.getString("cus_phone");
-                    order.status = orderJson.getString("status_order");
-                    order.dropoffAddress = orderJson.getString("destination_address");
-                    order.pickupAddress=orderJson.getString("origin_address");
-                    order.price=orderJson.getInt("price");
-                    order.distance=orderJson.getDouble("distance");
-                    order.pickupNote=orderJson.getString("note");
-                    order.dropoffNote=orderJson.getString("note");
-                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
-                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    JSONArray itemJArray = new JSONArray();
-                    itemJArray = orderJson.getJSONArray("item");
-                    for(int i=0;i<itemJArray.length();i++) {
+                            order.id_order=idOrder;
+                            order.user.name= orderJson.getString("cus_name");
+                            order.user.Phone=orderJson.getString("cus_phone");
+                            order.status = orderJson.getString("status_order");
+                            order.dropoffAddress = orderJson.getString("destination_address");
+                            order.pickupAddress=orderJson.getString("origin_address");
+                            order.price=orderJson.getInt("price");
+                            order.totalPrice=orderJson.getInt("total_price");
+                            order.distance=orderJson.getDouble("distance");
+                            order.pickupNote=orderJson.getString("note_from");
+                            order.dropoffNote=orderJson.getString("note_to");
+                            order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                            order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+                            order.orderType = orderJson.getInt("order_type");
+                            order.paymentType = orderJson.getString("payment_type");
+                            JSONArray itemJArray = new JSONArray();
+                            itemJArray = orderJson.getJSONArray("item");
+                            for(int i=0;i<itemJArray.length();i++) {
 
-                        JSONObject itemJson = itemJArray.getJSONObject(i);
-                        Item item = new Item();
-                        item.idItem=itemJson.getString("id_item");
-                        item.name = itemJson.getString("item_name");
-                        item.price = itemJson.getInt("price");
-                        item.qty = itemJson.getInt("quantity");
-                        order.item.add(item);
+                                JSONObject itemJson = itemJArray.getJSONObject(i);
+                                Item item = new Item();
+                                item.idItem=itemJson.getString("id_item");
+                                item.name = itemJson.getString("item_name");
+                                item.price = itemJson.getInt("price");
+                                item.qty = itemJson.getInt("quantity");
+                                item.notes = itemJson.getString("notes");
+                                item.photo = itemJson.getString("foto");
+                                order.item.add(item);
+                            }
+
+
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                     }
-
-                } catch (final JSONException e) {
-
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
-            } else {
-                Log.e(TAG, "Json null");
 
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition));
-            dropOffMarker= mMap.addMarker(new MarkerOptions().position(order.dropoofPosition));
-            Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-            double lat = mLastLocation.getLatitude();
-            double lng = mLastLocation.getLongitude();
-            driverMarker = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(lat, lng))
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
+        }
+
+        @Override
+        public void setSuccesPostExecute() {
             setAllTextView();
             adjustCamera();
 
@@ -190,43 +206,37 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity impleme
 
     public void setAllTextView()
     {
+        textViewOrderType.setText(order.getOrderTypeString());
+        textViewPaymentType.setText("BY "+order.paymentType.toUpperCase());
         textViewCustomerName.setText(order.user.name);
         textViewDestination.setText(order.dropoffAddress);
-        textViewDistance.setText(order.getDistanceString());
+        textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
         textViewOrderId.setText(order.id_order);
         textViewOrigin.setText(order.pickupAddress);
-        textViewPrice.setText(order.getPriceString());
+        textViewPrice.setText(Formater.getPrice(String.valueOf(order.totalPrice)));
         textViewNoteOrigin.setText(order.pickupNote);
         textViewNoteDestination.setText(order.dropoffNote);
 
-        setDetail();
+        viewDetail();
+
+        buttonMaps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(FindOrderDetailFoodActivity.this,MapsActivity.class);
+                i.putExtra("pick_up",order.pickupPosition);
+                i.putExtra("drop_off",order.dropoofPosition);
+                startActivity(i);
+            }
+        });
         super.setAllTextView();
 
 
 
     }
 
-    public void adjustCamera()
-    {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+    @Override
+    public void adjustCamera() {
 
-
-        builder.include(pickUpMarker.getPosition());
-        builder.include(dropOffMarker.getPosition());
-        if(!order.driver.idDriver.contentEquals("0")) {
-            builder.include(driverMarker.getPosition());
-        }
-
-
-        LatLngBounds bounds = builder.build();
-
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.1); // offset from edges of the map 12% of screen
-
-
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
-        mMap.animateCamera(cu);
     }
 
 

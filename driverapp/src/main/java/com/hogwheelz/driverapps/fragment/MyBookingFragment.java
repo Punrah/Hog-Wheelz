@@ -5,6 +5,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,22 +42,13 @@ public class MyBookingFragment extends Fragment {
 
         tabLayout = (TabLayout) myInflater.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        setupTabIcons();
+        tabLayout.setTabTextColors(ContextCompat.getColor(getActivity(), R.color.white), ContextCompat.getColor(getActivity(), R.color.colorAccent));
+
 
         return myInflater;
     }
 
-    private void setupTabIcons() {
 
-        TextView tabOne = (TextView) LayoutInflater.from(getActivity()).inflate(R.layout.custom_tab, null);
-        tabOne.setText("Active Booking");
-        tabLayout.getTabAt(0).setCustomView(tabOne);
-
-        TextView tabTwo = (TextView) LayoutInflater.from(getActivity()).inflate(R.layout.custom_tab, null);
-        tabTwo.setText("Booking History");
-        tabLayout.getTabAt(1).setCustomView(tabTwo);
-
-    }
 
     /**
      * Adding fragments to ViewPager
@@ -65,8 +57,8 @@ public class MyBookingFragment extends Fragment {
      */
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
-        adapter.addFrag(new ActiveBookingFragment(), "ONE");
-        adapter.addFrag(new BookingHistoryFragment(), "TWO");
+        adapter.addFrag(new ActiveBookingFragment(), "In Progress");
+        adapter.addFrag(new BookingHistoryFragment(), "Completed");
         viewPager.setAdapter(adapter);
     }
 

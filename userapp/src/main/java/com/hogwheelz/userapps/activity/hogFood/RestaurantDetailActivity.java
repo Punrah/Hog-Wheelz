@@ -1,19 +1,13 @@
 package com.hogwheelz.userapps.activity.hogFood;
 
-import android.Manifest;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -31,12 +25,13 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.makeOrder.MakeOrder;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrderFood;
+import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.persistence.Restaurant;
 
 import java.util.List;
 
-public class RestaurantDetailActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class RestaurantDetailActivity extends RootActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     TextView textViewRestaurantName;
     TextView textViewRestaurantAddress;
@@ -47,9 +42,11 @@ public class RestaurantDetailActivity extends AppCompatActivity implements OnMap
     View mapView;
     Marker markerRestaurant;
     LatLng location;
-Restaurant restaurant;
+    Restaurant restaurant;
     LinearLayout linearLayoutOpenHoursComplete;
     List<String> openHoursComplete;
+    ImageView back;
+    TextView call;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +60,7 @@ Restaurant restaurant;
         openHoursComplete = restaurant.openHourComplete;
         String name=restaurant.name;
         String adress=restaurant.address;
-        String phone =restaurant.photo;
+        final String phone ="081805314808";
 
 
         buildGoogleApiClient();
@@ -80,10 +77,59 @@ Restaurant restaurant;
         textViewRestaurantPhone= (TextView) findViewById(R.id.restaurant_phone);
         linearLayoutOpenHoursComplete=(LinearLayout) findViewById(R.id.open_hours_complete);
 
+        back =(ImageView) findViewById(R.id.back);
+        call = (TextView) findViewById(R.id.call);
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+        call.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(RestaurantDetailActivity.this);
+
+                builder.setTitle("Call Restaurant");
+                builder.setMessage("Do you want to call "+phone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        setConditionCall();
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
         textViewRestaurantName.setText(name);
         textViewRestaurantAddress.setText(adress);
         textViewRestaurantPhone.setText(phone);
         loadOpenHoursComplete();
+    }
+
+    @Override
+    public void setPermissionLocation() {
+
+    }
+
+    @Override
+    public void setPermissionCall() {
+
     }
 
     private void loadOpenHoursComplete()
@@ -94,7 +140,13 @@ Restaurant restaurant;
             LayoutInflater inflater = getLayoutInflater();
             LinearLayout convertView = (LinearLayout) inflater.inflate(R.layout.open_hours_complete, linearLayoutOpenHoursComplete, false);
             TextView openHours = (TextView) convertView.findViewById(R.id.open_hours);
-            openHours.setText(openHoursComplete.get(i));
+            TextView day = (TextView) convertView.findViewById(R.id.day);
+
+            String[] openHour = openHoursComplete.get(i).split(" ");
+            day.setText(openHour[0]);
+            openHours.setText(openHour[1]);
+
+
             linearLayoutOpenHoursComplete.addView(convertView);
         }
     }

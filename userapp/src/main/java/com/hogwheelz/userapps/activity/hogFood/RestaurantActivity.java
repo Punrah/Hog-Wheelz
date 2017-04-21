@@ -1,9 +1,7 @@
 package com.hogwheelz.userapps.activity.hogFood;
 
+import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Parcelable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -11,38 +9,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.Button;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.NotifActivity;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
+import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.Item;
 import com.hogwheelz.userapps.persistence.Menu;
 import com.hogwheelz.userapps.persistence.OrderFood;
 import com.hogwheelz.userapps.persistence.Restaurant;
-import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class RestaurantActivity extends NotifActivity {
+public class RestaurantActivity extends RootActivity {
     private String TAG = RestaurantActivity.class.getSimpleName();
     public Toolbar toolbar;
     LinearLayout linearLayoutSignatureDishes;
@@ -50,10 +40,14 @@ public class RestaurantActivity extends NotifActivity {
     TextView textViewRetaurantName;
     TextView textViewRestaurantAddress;
     TextView textViewOpenHour;
-    TextView textViewRetaurantDetail;
+    TextView textViewDistance;
+    ImageView textViewRetaurantDetail;
     Restaurant restaurant;
     TextView textViewRecapPrice;
-    Button buttonCheckout;
+    TextView textViewRecapQty;
+    ImageView buttonCheckout;
+    ImageView back;
+
     String idRestaurant;
 
     OrderFood orderFood;
@@ -67,35 +61,50 @@ public class RestaurantActivity extends NotifActivity {
         linearLayoutMenu = (LinearLayout) findViewById(R.id.list_menu);
         textViewRetaurantName = (TextView) findViewById(R.id.restaurant_name);
         textViewRestaurantAddress= (TextView) findViewById(R.id.restaurant_address);
-        textViewOpenHour= (TextView) findViewById(R.id.restaurant_distance_and_open_hour);
-        textViewRetaurantDetail=(TextView) findViewById(R.id.button_restaurant_detail);
+        textViewOpenHour= (TextView) findViewById(R.id.open_hour);
+        textViewDistance= (TextView) findViewById(R.id.restaurant_distance);
+        textViewRetaurantDetail=(ImageView) findViewById(R.id.button_restaurant_detail);
         textViewRecapPrice=(TextView) findViewById(R.id.price_recap);
-        buttonCheckout= (Button) findViewById(R.id.checkout);
+        textViewRecapQty=(TextView) findViewById(R.id.order_qty);
+        buttonCheckout= (ImageView) findViewById(R.id.checkout);
+        back =(ImageView) findViewById(R.id.back);
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         idRestaurant=getIntent().getStringExtra("id_restaurant");
         new fetchRestaurant().execute();
+orderFood = new OrderFood();
 
 
 
 
 
+    }
+
+    @Override
+    public void setPermissionLocation() {
+
+    }
+
+    @Override
+    public void setPermissionCall() {
 
     }
 
     private void setRecapPrice()
     {
-        textViewRecapPrice.setText(String.valueOf(restaurant.getRecapPrice()));
+        textViewRecapPrice.setText(Formater.getPrice(String.valueOf(orderFood.getRecapPrice())));
+        textViewRecapQty.setText(String.valueOf(orderFood.getRecapQty()));
     }
 
 
-    private class fetchRestaurant extends AsyncTask<Void, Void, Void> {
-        @Override
+    private class fetchRestaurant extends MyAsyncTask{
 
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
@@ -106,6 +115,7 @@ public class RestaurantActivity extends NotifActivity {
             String jsonStr = sh.makeServiceCall(url);
             if (jsonStr != null) {
                 try {
+                    isSucces=true;
 
                     JSONObject restaurantJson = new JSONObject(jsonStr);
 
@@ -172,16 +182,25 @@ public class RestaurantActivity extends NotifActivity {
 
                 } catch (final JSONException e) {
 
+                    emsg="Order Detail: " + e.getMessage();
                     Log.e(TAG, "Order Detail: " + e.getMessage());
                 }
             } else {
+                emsg = "Json Null";
                 Log.e(TAG, "Json null");
 
             }
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
+
+
+        @Override
+        public Context getContext() {
+            return RestaurantActivity.this;
+        }
+
+        @Override
+        public void setMyPostExecute() {
             setTextView();
             setRecapPrice();
         }
@@ -192,6 +211,7 @@ public class RestaurantActivity extends NotifActivity {
         textViewRetaurantName.setText(restaurant.name);
         textViewRestaurantAddress.setText(restaurant.address);
         textViewOpenHour.setText(restaurant.openHour);
+        textViewDistance.setText(Formater.getDistance(String.valueOf(restaurant.distance)));
         textViewRetaurantDetail.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
@@ -203,16 +223,26 @@ public class RestaurantActivity extends NotifActivity {
         buttonCheckout.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                Intent intent = new Intent(RestaurantActivity.this,MakeOrderFoodActivity.class);
-                intent.putExtra("restaurant",restaurant);
-                startActivityForResult(intent,1);
+                if(orderFood.getRecapQty()>0) {
+                    orderFood.menu = restaurant.menu;
+                    orderFood.pickupPosition = restaurant.location;
+                    Intent intent = new Intent(RestaurantActivity.this, MakeOrderFoodActivity.class);
+                    intent.putExtra("order", orderFood);
+                    startActivityForResult(intent, 1);
+                }
+                else
+                {
+                    Toast.makeText(RestaurantActivity.this, "No item ordered", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+        linearLayoutMenu.removeAllViews();
 
         for(int i=0;i<restaurant.menu.size();i++)
         {
+
             final LayoutInflater inflater = getLayoutInflater();
-            FrameLayout convertView = (FrameLayout) inflater.inflate(R.layout.list_menu, linearLayoutMenu, false);
+            LinearLayout convertView = (LinearLayout) inflater.inflate(R.layout.list_menu, linearLayoutMenu, false);
             TextView name = (TextView) convertView.findViewById(R.id.menu_name);
 
             name.setText(String.valueOf(restaurant.menu.get(i).name));
@@ -232,13 +262,15 @@ public class RestaurantActivity extends NotifActivity {
 
             linearLayoutMenu.addView(convertView);
         }
+        setRecapPrice();
         Log.e(TAG, "resto: " + restaurant.toString());
     }
 
     private void openListItem(int j)
     {
+        orderFood.menu=restaurant.menu;
         Intent intent = new Intent(RestaurantActivity.this,ListItemActivity.class);
-        intent.putExtra("restaurant",restaurant);
+        intent.putExtra("order",orderFood);
         intent.putExtra("index",j);
         startActivityForResult(intent,1);
     }
@@ -247,9 +279,11 @@ public class RestaurantActivity extends NotifActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                restaurant = data.getParcelableExtra("restaurant");
-                setRecapPrice();
+                orderFood = data.getParcelableExtra("order");
+                restaurant.menu = orderFood.menu;
+                setTextView();
             }
+
         }
     }
 

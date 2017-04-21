@@ -15,9 +15,11 @@ public class Driver implements Serializable {
     public String plat;
     public String idDriver;
     public LatLng driverLocation;
+    public int rating;
 
     public Driver()
     {
+        rating=0;
         username="";
         name="";
         plat="";

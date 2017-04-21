@@ -5,11 +5,14 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.hogwheelz.driverapps.activity.MainActivity;
+import com.hogwheelz.driverapps.activity.main.MainActivity;
 import com.hogwheelz.driverapps.app.Config;
+import com.hogwheelz.driverapps.helper.MessageSQLiteHandler;
+import com.hogwheelz.driverapps.persistence.Message;
 import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
@@ -24,10 +27,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
 
     private NotificationUtils notificationUtils;
+    MessageSQLiteHandler db;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.e(TAG, "From: " + remoteMessage.getFrom());
+
 
         if (remoteMessage == null)
             return;
@@ -103,15 +108,35 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
                 resultIntent.putExtra("message", message);
                 JSONObject jsonPayload = new JSONObject(payload.toString());
-                String idOrder=jsonPayload.getString("id_order");
-                resultIntent.putExtra("id_order",idOrder);
-                // check for image attachment
-                if (TextUtils.isEmpty(imageUrl)) {
-                    showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);
-                } else {
-                    // image is present, show notification with image
-                    showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
+                String notif=jsonPayload.getString("notif");
+                if(notif.contentEquals("order")) {
+                    String idOrder = jsonPayload.getString("id_order");
+                    resultIntent.putExtra("id_order", idOrder);
+                    // check for image attachment
+                    if (TextUtils.isEmpty(imageUrl)) {
+                        showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);
+                    } else {
+                        // image is present, show notification with image
+                        showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
+                    }
                 }
+                else if (notif.contentEquals("message"))
+                {
+                    db = new MessageSQLiteHandler(getApplicationContext());
+                    Message message1 = new Message();
+                    message1.idMessage=jsonPayload.getString("id_message");
+                    message1.subject=jsonPayload.getString("subject");
+                    message1.body=jsonPayload.getString("body");
+                    message1.date=jsonPayload.getString("date");
+                    db.addMessage(message1);
+                    if (TextUtils.isEmpty(imageUrl)) {
+                        showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);
+                    } else {
+                        // image is present, show notification with image
+                        showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
+                    }
+                }
+
 
             }
         } catch (JSONException e) {

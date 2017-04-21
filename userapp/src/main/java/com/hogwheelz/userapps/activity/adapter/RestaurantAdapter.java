@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.persistence.Order;
 import com.hogwheelz.userapps.persistence.Restaurant;
 
@@ -54,11 +55,13 @@ public class RestaurantAdapter extends BaseAdapter {
 
         TextView name = (TextView) convertView.findViewById(R.id.restaurant_name);
         TextView address = (TextView) convertView.findViewById(R.id.restaurant_address);
-        TextView distanceAndOpenHour = (TextView) convertView.findViewById(R.id.restaurant_distance_and_open_hour);
+        TextView distance = (TextView) convertView.findViewById(R.id.restaurant_distance);
+        TextView openHour = (TextView) convertView.findViewById(R.id.open_hour);
 
         name.setText(String.valueOf(restaurantList.get(position).name));
         address.setText(String.valueOf(restaurantList.get(position).address));
-        distanceAndOpenHour.setText(String.valueOf(restaurantList.get(position).distance+"  "+String.valueOf(restaurantList.get(position).openHour)));
+        distance.setText(Formater.getDistance(String.valueOf(restaurantList.get(position).distance)));
+        openHour.setText(String.valueOf(restaurantList.get(position).openHour));
 
         return convertView;
     }

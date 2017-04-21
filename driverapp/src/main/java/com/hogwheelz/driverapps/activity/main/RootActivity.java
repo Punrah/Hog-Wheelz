@@ -21,6 +21,9 @@ import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderFoodActivity;
 import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderRideActivity;
 import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.app.Config;
+import com.hogwheelz.driverapps.helper.DriverSQLiteHandler;
+import com.hogwheelz.driverapps.helper.MessageSQLiteHandler;
+import com.hogwheelz.driverapps.persistence.Message;
 import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
@@ -37,12 +40,13 @@ public abstract class RootActivity extends AppCompatActivity {
     String idOrder;
     int orderType;
     AlertDialog.Builder alert;
+    private MessageSQLiteHandler db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
+        db = new MessageSQLiteHandler(getApplicationContext());
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -58,31 +62,53 @@ public abstract class RootActivity extends AppCompatActivity {
                     JSONObject json = null;
                     try {
                         json = new JSONObject(intent.getStringExtra("payload"));
-                        idOrder=json.getString("id_order");
-                        orderType=json.getInt("order_type");
+                        String notif=json.getString("notif");
+                        String msg = intent.getStringExtra("message");
+                        if(notif.contentEquals("order")) {
+                            idOrder = json.getString("id_order");
+                            orderType = json.getInt("order_type");
+                            alert = new AlertDialog.Builder(RootActivity.this);
+                            alert.setTitle("ORDER");
+                            alert.setMessage("Order no:" + idOrder + " " + msg);
+                            alert.setCancelable(true);
+                            alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    openOrderActivity();
+                                }
+                            });
+                            alert.show();
+                        }
+                        else if (notif.contentEquals("message"))
+                        {
+                            Message message = new Message();
+                            message.idMessage=json.getString("id_message");
+                            message.subject=json.getString("subject");
+                            message.body=json.getString("body");
+                            message.date=json.getString("date");
+                            db.addMessage(message);
+                            alert = new AlertDialog.Builder(RootActivity.this);
+                            alert.setTitle("New Message");
+                            alert.setMessage(msg);
+                            alert.setCancelable(true);
+                            alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                }
+                            });
+                            alert.show();
 
-
-                        String msg=intent.getStringExtra("message");
-                        alert = new AlertDialog.Builder(RootActivity.this);
-                        alert.setTitle("Alert");
-                        alert.setMessage("Order no:"+idOrder+" "+msg);
-                        alert.setCancelable(true);
-                        alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-                        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                openOrderActivity();
-                            }
-                        });
-                        alert.show();
-
-
-
-
+                        }
                     } catch (JSONException e) {
                         Log.e(TAG, "Json Exception: " + e.getMessage());
                         Toast.makeText(getApplicationContext(),  e.getMessage(), Toast.LENGTH_LONG).show();
@@ -93,9 +119,6 @@ public abstract class RootActivity extends AppCompatActivity {
             }
 
         };
-
-
-
 
     }
 

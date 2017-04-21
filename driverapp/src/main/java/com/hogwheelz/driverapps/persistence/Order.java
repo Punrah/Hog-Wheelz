@@ -4,6 +4,9 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Startup on 2/1/17.
@@ -25,6 +28,9 @@ public  class Order implements Serializable{
     public String dropoffNote="";
     public String status;
     public int orderType;
+    public String paymentType;
+    public String vechicle;
+    public String phone;
 
     public Order()
     {
@@ -42,6 +48,8 @@ public  class Order implements Serializable{
         dropoffNote="";
         status="";
         orderType=0;
+        paymentType="";
+        vechicle="";
     }
 
 
@@ -97,5 +105,64 @@ public  class Order implements Serializable{
         dropoofPosition=place.getLatLng();
         dropoffAddress=place.getName().toString();
     }
+
+    public String getDateTime() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        Date date= null;
+        try {
+            date = simpleDateFormat.parse(orderDate);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("MMMM/dd/yy, HH:mm aa");
+        return simpleDateFormat2.format(date);
+
+    }
+
+    public String getOrderTypeString()
+    {
+        String orderTypeStr="";
+        if(orderType==1)
+        {
+            orderTypeStr="RIDE";
+        }
+        else if(orderType==2)
+        {
+            orderTypeStr="SEND";
+        }
+        else if(orderType==3)
+        {
+            orderTypeStr="FOOD";
+        }
+        return orderTypeStr;
+    }
+    public String getStatusString()
+    {
+        String value="";
+        if(status.contentEquals("Accept"))
+        {
+            value="Order Found";
+        }
+        else if(status.contentEquals("OTW"))
+        {
+            value="Pick up";
+        }
+        else if(status.contentEquals("start"))
+        {
+            value="On the way";
+        }
+        else if(status.contentEquals("Complete"))
+        {
+            value="Complete";
+        }
+        else if(status.contentEquals("Cancel"))
+        {
+            value="Canceled";
+        }
+        return value;
+    }
+
 
 }

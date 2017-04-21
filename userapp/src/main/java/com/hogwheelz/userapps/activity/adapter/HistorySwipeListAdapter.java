@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hogwheelz.userapps.R;
@@ -52,15 +54,46 @@ public class HistorySwipeListAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(R.layout.list_history, null);
 
+        LinearLayout statusColor = (LinearLayout) convertView.findViewById(R.id.status_color);
         TextView status = (TextView) convertView.findViewById(R.id.status);
         TextView orderDate = (TextView) convertView.findViewById(R.id.order_date);
         TextView dropOffAddress = (TextView) convertView.findViewById(R.id.dropoff_address);
-        TextView orderType = (TextView) convertView.findViewById(R.id.order_type);
+        ImageView orderType = (ImageView) convertView.findViewById(R.id.order_type);
 
-        status.setText(String.valueOf(orderList.get(position).status));
-        orderDate.setText(String.valueOf(orderList.get(position).orderDate));
+       if(orderList.get(position).status.contentEquals("Complete"))
+       {
+           status.setText("COMPLETED");
+           statusColor.setBackgroundResource(R.drawable.border_round_green);
+       }
+       else if(orderList.get(position).status.contentEquals("Cancel"))
+       {
+           status.setText("CANCELLED");
+           statusColor.setBackgroundResource(R.drawable.border_round_red);
+       }
+       else
+       {
+           status.setText("");
+           statusColor.setBackgroundColor(Color.TRANSPARENT);
+       }
+
+        orderDate.setText(String.valueOf(orderList.get(position).getDateTime()));
         dropOffAddress.setText(String.valueOf(orderList.get(position).dropoffAddress));
-        orderType.setText(String.valueOf(orderList.get(position).orderType));
+
+        if(orderList.get(position).orderType==1)
+        {
+            orderType.setImageResource(R.drawable.ride_logo);
+        }
+        else if(orderList.get(position).orderType==2)
+        {
+            orderType.setImageResource(R.drawable.send_logo);
+        }
+        else if(orderList.get(position).orderType==3)
+        {
+            orderType.setImageResource(R.drawable.food_logo);
+        }
+        else
+        {
+        }
 
         return convertView;
     }

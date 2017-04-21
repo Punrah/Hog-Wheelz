@@ -1,41 +1,58 @@
 package com.hogwheelz.userapps.activity.makeOrder;
 
+import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.util.Log;
+import android.graphics.Typeface;
 import android.view.View;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.hogwheelz.userapps.activity.FindDriverActivity;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.other.FindDriverActivity;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.OrderRide;
 import com.hogwheelz.userapps.persistence.UserGlobal;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Startup on 2/8/17.
+ *
  */
 
 public class MakeOrderRideActivity extends MakeOrder {
+
+    OrderRide order;
 
     private static final String TAG = MakeOrder.class.getSimpleName();
 
     @Override
     public void setToolbarTitle() {
 
-        toolbar.setTitle("Hogride");
-        setSupportActionBar(toolbar);
+
+        logo.setImageResource(R.drawable.ride_white);
     }
 
     @Override
@@ -44,17 +61,29 @@ public class MakeOrderRideActivity extends MakeOrder {
     }
 
     @Override
+    public void setTypeImage(int type) {
+        if(type==1)
+        {
+            imgBike.setImageResource(R.drawable.motor_ride_yellow);
+            imgCar.setImageResource(R.drawable.car_ride_gray);
+        }
+        if(type==2)
+        {
+            imgBike.setImageResource(R.drawable.motor_ride_gray);
+            imgCar.setImageResource(R.drawable.car_ride_yellow);
+        }
+    }
+
+    @Override
     public void readyToOrder() {
         new calculatePrice().execute();
     }
 
-    private class calculatePrice extends AsyncTask<Void, Void, Void> {
+    private class calculatePrice extends MyAsyncTask {
         @Override
 
         protected void onPreExecute() {
             super.onPreExecute();
-            // Showing progress dialog
-            textViewPrice.setText("Please wait");
 
         }
         protected Void doInBackground(Void... arg0) {
@@ -65,122 +94,285 @@ public class MakeOrderRideActivity extends MakeOrder {
             String originsLng = order.getPickupLngString();
             String destinationsLat = order.getDropoffLatString();
             String destinationsLng = order.getDropoffLngString();
-            String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng);
+            order.orderType=1;
+            order.vehicle=vehicleState;
+            String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng,String.valueOf(order.orderType),order.vehicle);
 
             String jsonStr = sh.makeServiceCall(url);
             if (jsonStr != null) {
                 try {
                     JSONObject jsonObj = new JSONObject(jsonStr);
-                    order.price= jsonObj.getInt("price");
+                    order.priceCar= jsonObj.getInt("price_car");
+                    order.priceBike= jsonObj.getInt("price_bike");
                     order.distance = jsonObj.getDouble("distance");
+                    isSucces=true;
 
                 } catch (final JSONException e) {
-                    Toast.makeText(MakeOrderRideActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    emsg="Json parsing error: " + e.getMessage();
                 }
             } else {
-                Toast.makeText(MakeOrderRideActivity.this, "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
+                emsg="Couldn't get json from server.";
 
             }
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
-            textViewPrice.setText(order.getPriceString()+" "+ order.getDistanceString());
-            linearLayoutOrder.setVisibility(View.VISIBLE);
+
+        @Override
+        public Context getContext() {
+            return MakeOrderRideActivity.this;
+        }
+
+        @Override
+        public void setMyPostExecute() {
+            textViewPriceLabel.setText("FARE ");
+            textViewDistanceLabel.setText("DISTANCE ");
+            setPriceByVehicle();
+            textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
+            buttonBook.setImageResource(R.drawable.order_active);
+
+            if (order.price > UserGlobal.balance) {
+                radioHogpay.setEnabled(false);
+            } else {
+                radioHogpay.setEnabled(true);
+            }
 
 
             // Link to Register Screen
             buttonBook.setOnClickListener(new View.OnClickListener() {
 
                 public void onClick(View view) {
-                    booking();
+                    new booking().execute();
 
                 }
             });
-
-            // Dismiss the progress dialog
-
         }
     }
 
-    private void booking() {
+
+    private class booking extends MyAsyncTask {
         // Tag used to cancel the request
-        String tag_string_req = "order_ride";
-        order.user = UserGlobal.getUser(getApplicationContext());
 
-        order.pickupNote=editTextPickupNote.getText().toString();
-        order.dropoffNote=editTextDropoffNote.getText().toString();
+        String idOrder="";
 
+        public void postData() {
+            order.user = UserGlobal.getUser(getApplicationContext());
 
+            order.pickupNote=editTextPickupNote.getText().toString();
+            order.dropoffNote=editTextDropoffNote.getText().toString();
 
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_ORDER_RIDE, new Response.Listener<String>() {
+            if(radioCash.isChecked())
+            {
+                order.payment_type="cash";
+            }
+            else if(radioHogpay.isChecked())
+            {
+                order.payment_type="hogpay";
+            }
 
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
+            order.vehicle=vehicleState;
 
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
+            String url = AppConfig.URL_ORDER_RIDE;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
+                nameValuePairs.add(new BasicNameValuePair("id_customer", order.user.idCustomer));
+                nameValuePairs.add(new BasicNameValuePair("add_from", order.pickupAddress));
+                nameValuePairs.add(new BasicNameValuePair("add_to", order.dropoffAddress));
+                nameValuePairs.add(new BasicNameValuePair("lat_from", order.getPickupLatString()));
+                nameValuePairs.add(new BasicNameValuePair("long_from", order.getPickupLngString()));
+                nameValuePairs.add(new BasicNameValuePair("lat_to", order.getDropoffLatString()));
+                nameValuePairs.add(new BasicNameValuePair("long_to", order.getDropoffLngString()));
+                nameValuePairs.add(new BasicNameValuePair("price", order.getPriceString()));
+                nameValuePairs.add(new BasicNameValuePair("note_from", order.getPickupNoteString()));
+                nameValuePairs.add(new BasicNameValuePair("note_to", order.getDropoffNoteString()));
+                nameValuePairs.add(new BasicNameValuePair("distance", order.getDistanceString()));
+                nameValuePairs.add(new BasicNameValuePair("payment_type", order.payment_type));
+                nameValuePairs.add(new BasicNameValuePair("vehicle", order.vehicle));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                        String idOrder=jObj.getString("id_order");
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
 
-                        Intent i = new Intent(MakeOrderRideActivity.this,
-                                FindDriverActivity.class);
-                        i.putExtra("id_order",idOrder);
-                        startActivity(i);
-                        finish();
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
+                        status=obj.getString("status");
 
-                    } else {
+                        if(status.contentEquals("1") )
+                        {
+                            idOrder = obj.getString("id_order");
+                            isSucces=true;
+                            smsg = obj.getString("msg");
+                        }
+                        else
+                        {
+                            emsg = obj.getString("msg");
+                            //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                "status"+errorMsg, Toast.LENGTH_LONG).show();
+                        }
+
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                     }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
 
-            }
-        }, new Response.ErrorListener() {
 
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        "error listener"+error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_customer", order.user.idCustomer);
-                params.put("add_from", order.pickupAddress);
-                params.put("add_to", order.dropoffAddress);
-                params.put("lat_from", order.getPickupLatString());
-                params.put("long_from", order.getPickupLngString());
-                params.put("lat_to", order.getDropoffLatString());
-                params.put("long_to", order.getDropoffLngString());
-                params.put("price", order.getPriceString());
-                params.put("note", order.getPickupNoteString()+ order.getDropoffNoteString());
-
-                return params;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
 
-        };
+        }
+        @Override
+        protected Void doInBackground(Void... params) {
 
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+
+
+            postData();
+
+            return super.doInBackground(params);
+        }
+
+
+        @Override
+        public Context getContext() {
+            return MakeOrderRideActivity.this;
+        }
+
+        @Override
+        public void setMyPostExecute() {
+            Intent i = new Intent(MakeOrderRideActivity.this,
+                    FindDriverActivity.class);
+            i.putExtra("id_order",idOrder);
+            startActivity(i);
+            finish();
+        }
+    }
+
+    public void setPriceByVehicle()
+    {
+        if(vehicleState.equals("bike"))
+        {
+            textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceBike)));
+            order.price=order.priceBike;
+        }
+        else if(vehicleState.equals("car"))
+        {
+            textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceCar)));
+            order.price=order.priceCar;
+        }
+    }
+
+    private void getMyLocation()
+    {
+        mMap.setMyLocationEnabled(true);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        if (mLastLocation != null) {
+            lat = mLastLocation.getLatitude();
+            lng = mLastLocation.getLongitude();
+            order.pickupPosition = new LatLng(lat, lng);
+            order.pickupAddress = getAddress(lat, lng);
+            pickUpMarker = mMap.addMarker(new MarkerOptions()
+                    .position(order.pickupPosition)
+                    .title(order.pickupAddress)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker))
+            );
+            dropOffMarker = mMap.addMarker(new MarkerOptions()
+                    .position(order.pickupPosition)
+                    .title(order.pickupAddress)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.red_marker))
+            );
+
+            new getDriverLocation().execute();
+            dropOffMarker.setVisible(false);
+            setAwal();
+            adjustCamera();
+            fillPickUpAddress();
+        }
+    }
+
+    private void fillPickUpAddress()
+    {
+        pickUpMarker.setPosition(order.pickupPosition);
+        pickUpMarker.setTitle(order.pickupAddress);
+        adjustCamera();
+        textViewPickUpAddres.setText(order.pickupAddress);
+        textViewPickUpAddres.setTypeface(null, Typeface.NORMAL);
+        textViewPickUpAddres.setTextColor(getResources().getColor(R.color.black));
+        isPickUpAddressSetted=true;
+        setBookingState();
+    }
+
+    private void fillDropOffAddress()
+    {
+        dropOffMarker.setPosition(order.dropoofPosition);
+        dropOffMarker.setTitle(order.dropoffAddress);
+        dropOffMarker.setVisible(true);
+        adjustCamera();
+        textViewDropOffAddress.setText(order.dropoffAddress);
+        textViewDropOffAddress.setTypeface(null, Typeface.NORMAL);
+        textViewDropOffAddress.setTextColor(getResources().getColor(R.color.black));
+        isDropOffAddressSetted=true;
+        setBookingState();
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_PICKUP) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                order.setPickupPlace(place);
+                fillPickUpAddress();
+
+
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                // TODO: Handle the error.
+
+                textViewPickUpAddres.setText(status.getStatusMessage());
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
+        else if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE_IS_DROPOFF) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                order.setDropoffPlace(place);
+                fillDropOffAddress();
+
+
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                // TODO: Handle the error.
+                textViewDropOffAddress.setText(status.getStatusMessage());
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
+
+    }
+
+    @Override
+    public void setPermissionLocation() {
+        getMyLocation();
+    }
+
+    @Override
+    public void setPermissionCall() {
+
     }
 }

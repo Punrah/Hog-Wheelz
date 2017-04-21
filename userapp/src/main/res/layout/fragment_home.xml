@@ -1,28 +1,181 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context="com.hogwheelz.userapps.fragment.HomeFragment">
 
-   <android.support.v7.widget.LinearLayoutCompat
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:orientation="vertical">
-       <android.support.v7.widget.AppCompatButton
-           android:layout_width="match_parent"
-           android:layout_height="100dp"
-           android:text="Hogride"
-           android:id="@+id/button_hogride"/>
-       <android.support.v7.widget.AppCompatButton
-           android:layout_width="match_parent"
-           android:layout_height="100dp"
-           android:text="Hogsend"
-           android:id="@+id/button_hogsend"/>
-       <android.support.v7.widget.AppCompatButton
-           android:layout_width="match_parent"
-           android:layout_height="100dp"
-           android:text="Hogfood"
-           android:id="@+id/button_hogfood"/>
-   </android.support.v7.widget.LinearLayoutCompat>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:background="@color/white">
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:gravity="center_vertical|right"
+            android:paddingRight="5dp"
+            >
+
+            <ImageView
+                android:id="@+id/hogpay"
+                android:layout_width="80dp"
+                android:layout_height="18dp"
+                android:src="@drawable/hog_pay"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/softgray"></LinearLayout>
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:paddingLeft="5dp"
+            android:gravity="left|center_vertical">
+
+            <TextView
+
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:id="@+id/balance"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="18dp"
+                android:text="R 10000"/>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="@drawable/one_piece"/>
+
+
+<LinearLayout
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/white">
+            <LinearLayout
+                android:gravity="center"
+                android:id="@+id/button_hogride"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:paddingTop="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ride_logo"/>
+
+                <TextView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="HOGRIDE"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:id="@+id/button_hogsend"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/send_logo"/>
+
+                <TextView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="HOGSEND"/>
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent">
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/white">
+
+
+
+
+            <LinearLayout
+                android:gravity="center"
+                android:id="@+id/button_hogfood"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/food_logo"/>
+
+                <TextView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="HOGFOOD"/>
+            </LinearLayout>
+            <LinearLayout
+                android:gravity="center"
+                android:id="@+id/button_hogpay"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/pay_logo"/>
+
+                <TextView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="HOGPAY"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
+
+</LinearLayout>

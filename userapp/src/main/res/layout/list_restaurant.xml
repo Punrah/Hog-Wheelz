@@ -2,10 +2,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:background="@drawable/driver_pic"/>
+
+    <ImageView
+        android:scaleType="centerCrop"
+        android:id="@+id/img_restaurant"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:src="@drawable/rest" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -18,31 +21,61 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom"
-                android:orientation="vertical"
-                android:padding="10dp">
+                android:orientation="vertical">
 
                 <TextView
+                    android:shadowColor="@color/black"
+                    android:shadowDx="3"
+                    android:shadowDy="3"
+                    android:shadowRadius="2"
                     android:id="@+id/restaurant_name"
                     android:layout_marginBottom="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nama resturant"
+                    android:text="Restaurant Name"
                     android:textSize="24dp"
                     android:textColor="@color/white" />
 
                 <TextView
+                    android:shadowColor="@color/black"
+                    android:shadowDx="3"
+                    android:shadowDy="3"
+                    android:shadowRadius="2"
                     android:id="@+id/restaurant_address"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nama resturant"
+                    android:text="Restaurant Address"
                     android:textColor="@color/white" />
 
-                <TextView
-                    android:id="@+id/restaurant_distance_and_open_hour"
+                <LinearLayout
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Nama resturant"
-                    android:textColor="@color/white" />
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:shadowColor="@color/black"
+                        android:shadowDx="3"
+                        android:shadowDy="3"
+                        android:shadowRadius="2"
+                        android:id="@+id/restaurant_distance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:text="Distance"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:layout_marginLeft="15dp"
+                        android:shadowColor="@color/black"
+                        android:shadowDx="3"
+                        android:shadowDy="3"
+                        android:shadowRadius="2"
+                        android:id="@+id/open_hour"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:text="Open Hour"
+                        android:textColor="@color/white" />
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

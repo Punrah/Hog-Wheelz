@@ -1,45 +1,49 @@
 package com.hogwheelz.driverapps.activity.viewOrder;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.util.Log;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.hogwheelz.driverapps.R;
+import com.hogwheelz.driverapps.activity.other.MapsActivity;
+import com.hogwheelz.driverapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.driverapps.app.AppConfig;
-import com.hogwheelz.driverapps.app.AppController;
-import com.hogwheelz.driverapps.helper.HttpHandler;
+import com.hogwheelz.driverapps.app.Formater;
 import com.hogwheelz.driverapps.persistence.OrderSend;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class ViewOrderSendActivity extends ViewOrderActivity  {
     private static final String TAG = ViewOrderSendActivity.class.getSimpleName();
  LinearLayout convertView;
     boolean detailOpen=false;
     OrderSend order;
+    Location mLastLocation;
+    LinearLayout callerSender;
+    LinearLayout callerReceiver;
 
     @Override
     public void initializeOrder() {
@@ -52,30 +56,7 @@ public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapRea
     }
 
 
-    public void setDetail() {
 
-        buttonDetail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setDetailButton();
-            }
-        });
-    }
-
-    private void setDetailButton()
-    {
-        if(detailOpen)
-        {
-            linearLayoutDetail.removeView(convertView);
-            detailOpen=false;
-        }
-        else
-        {
-            viewDetail();
-            detailOpen=true;
-        }
-
-    }
 
 
     private void viewDetail()
@@ -87,368 +68,655 @@ public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapRea
         TextView sender_phone = (TextView) convertView.findViewById(R.id.sender_phone_send);
         TextView receiver_name = (TextView) convertView.findViewById(R.id.receiver_name_send);
         TextView receiver_phone = (TextView) convertView.findViewById(R.id.receiver_phone_send);
+        TextView sender_call = (TextView) convertView.findViewById(R.id.sender_call);
+        TextView sender_text = (TextView) convertView.findViewById(R.id.sender_text);
+        TextView receiver_call= (TextView) convertView.findViewById(R.id.receiver_call);
+        TextView receiver_text = (TextView) convertView.findViewById(R.id.receiver_text);
+        callerSender =(LinearLayout) convertView.findViewById(R.id.caller_sender);
+        callerReceiver =(LinearLayout) convertView.findViewById(R.id.caller_receiver);
+        if (order.status.contentEquals("Complete"))
+        {
+            callerSender.removeAllViews();
+            callerReceiver.removeAllViews();
+        }
+        else if(order.status.contentEquals("Cancel"))
+        {
+            callerSender.removeAllViews();
+            callerReceiver.removeAllViews();
+        }
         description.setText(String.valueOf(order.description));
         sender_name.setText(String.valueOf(order.senderName));
         sender_phone.setText(String.valueOf(order.senderPhone));
         receiver_name.setText(String.valueOf(order.receiverName));
         receiver_phone.setText(String.valueOf(order.receiverPhone));
+        sender_call.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
 
+                builder.setTitle("Call Customer");
+                builder.setMessage("Do you want to call "+order.senderPhone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        setConditionCall();
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
+        sender_text.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+                builder.setTitle("Text Customer");
+                builder.setMessage("Do you want to text "+order.senderPhone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        Uri sms_uri = Uri.parse("smsto:"+order.user.Phone);
+                        Intent sms_intent = new Intent(Intent.ACTION_SENDTO, sms_uri);
+                        startActivity(sms_intent);
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+        receiver_call.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+                builder.setTitle("Call Customer");
+                builder.setMessage("Do you want to call "+order.receiverPhone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        setConditionCall();
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
+        receiver_text.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+                builder.setTitle("Text Customer");
+                builder.setMessage("Do you want to text "+order.receiverPhone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        Uri sms_uri = Uri.parse("smsto:"+order.user.Phone);
+                        Intent sms_intent = new Intent(Intent.ACTION_SENDTO, sms_uri);
+                        startActivity(sms_intent);
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
         linearLayoutDetail.addView(convertView);
     }
 
 
-    private class getOrderDetail extends AsyncTask<Void, Void, Void> {
+
+
+    public class getOrderDetail extends MyAsyncTask {
+
         @Override
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
+        public Context getContext() {
+            return ViewOrderSendActivity.this;
         }
-        protected Void doInBackground(Void... arg0) {
 
-            HttpHandler sh = new HttpHandler();
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
             String url = AppConfig.getOrderDetail(idOrder);
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                    JSONObject orderJson = new JSONObject(jsonStr);
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
 
-                    order.id_order=idOrder;
-                    order.user.name= orderJson.getString("cus_name");
-                    order.user.Phone=orderJson.getString("cus_phone");
-                    order.status = orderJson.getString("status_order");
-                    order.dropoffAddress = orderJson.getString("destination_address");
-                    order.pickupAddress=orderJson.getString("origin_address");
-                    order.price=orderJson.getInt("price");
-                    order.distance=orderJson.getDouble("distance");
-                    order.pickupNote=orderJson.getString("note");
-                    order.dropoffNote=orderJson.getString("note");
-                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
-                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    order.description = orderJson.getString("item_description");
-                    order.senderName = orderJson.getString("sender_name");
-                    order.senderPhone = orderJson.getString("sender_phone");
-                    order.receiverName = orderJson.getString("receiver_name");
-                    order.receiverPhone = orderJson.getString("receiver_phone");
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
 
-                } catch (final JSONException e) {
 
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
+                            isSucces=true;
+
+                        JSONObject orderJson = obj;
+
+
+                            order.id_order=idOrder;
+                            order.user.name= orderJson.getString("cus_name");
+                            order.user.Phone=orderJson.getString("cus_phone");
+                            order.status = orderJson.getString("status_order");
+                            order.dropoffAddress = orderJson.getString("destination_address");
+                            order.pickupAddress=orderJson.getString("origin_address");
+                            order.price=orderJson.getInt("price");
+                            order.distance=orderJson.getDouble("distance");
+                            order.pickupNote=orderJson.getString("note_from");
+                            order.dropoffNote=orderJson.getString("note_to");
+                            order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                            order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+                            order.orderType = orderJson.getInt("order_type");
+                            order.paymentType = orderJson.getString("payment_type");
+                            order.description = orderJson.getString("item_description");
+                            order.senderName = orderJson.getString("sender_name");
+                            order.senderPhone = orderJson.getString("sender_phone");
+                            order.receiverName = orderJson.getString("receiver_name");
+                            order.receiverPhone = orderJson.getString("receiver_phone");
+
+
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                    }
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
-            } else {
-                Log.e(TAG, "Json null");
 
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
-            pickUpMarker = mMap.addMarker(new MarkerOptions().position(order.pickupPosition));
-            dropOffMarker= mMap.addMarker(new MarkerOptions().position(order.dropoofPosition));
-            Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-            double lat = mLastLocation.getLatitude();
-            double lng = mLastLocation.getLongitude();
-            driverMarker = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(lat, lng))
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.motorcycle)));
+        }
+
+        @Override
+        public void setSuccesPostExecute() {
             setAllTextView();
             adjustCamera();
 
         }
     }
 
-    public void cancelAcceptedOrder() {
-        // Tag used to cancel the request
-        Toast.makeText(this, "makann", Toast.LENGTH_SHORT).show();
-        String tag_string_req = "cancel_accepted_order";
+    public void cancelAcceptedOrder(){
+        new cancelAcceptedOrder().execute();
+    }
+    public  class cancelAcceptedOrder extends MyAsyncTask {
+
+        @Override
+        public Context getContext() {
+            return ViewOrderSendActivity.this;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
+            String url = AppConfig.CANCEL_ACCEPTED_ORDER;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+                nameValuePairs.add(new BasicNameValuePair("id_order",idOrder));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
+
+                            isSucces=true;
+                            smsg = obj.getString("msg");
 
 
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.CANCEL_ACCEPTED_ORDER, new Response.Listener<String>() {
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
-
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-                    String msg = jObj.getString("msg");
-
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-                        finish();
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
-                    else if (status.contentEquals("2"))
-                    {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        // Error in login. Get the error message
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
 
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_order",idOrder);
-
-                return params;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
 
-        };
+        }
 
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        @Override
+        public void setSuccesPostExecute() {
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+            builder.setTitle("CANCEL ORDER");
+            builder.setMessage(smsg);
+            builder.setCancelable(false);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+
+                    finish();
+                }
+            });
+            android.support.v7.app.AlertDialog alert = builder.create();
+            alert.show();
+
+        }
     }
+
     public void otwOrder() {
-        // Tag used to cancel the request
-        String tag_string_req = "go_order";
-
-
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.OTW_ORDER, new Response.Listener<String>() {
-
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
-
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-                    String msg = jObj.getString("msg");
-
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        Intent i=new Intent(ViewOrderSendActivity.this,ViewOrderSendActivity.class);
-                        i.putExtra("id_order", order.id_order);
-                        startActivity(i);
-                        finish();
-                    }
-                    else if (status.contentEquals("2"))
-                    {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        // Error in login. Get the error message
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_order", order.id_order);
-
-                return params;
-            }
-
-        };
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        new otwOrder().execute();
     }
-    public void startOrder() {
-        // Tag used to cancel the request
-        String tag_string_req = "go_order";
+    public  class otwOrder extends MyAsyncTask {
+
+        @Override
+        public Context getContext() {
+            return ViewOrderSendActivity.this;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
+            String url = AppConfig.OTW_ORDER;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+                nameValuePairs.add(new BasicNameValuePair("id_order",idOrder));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
 
 
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.START_ORDER, new Response.Listener<String>() {
+                            isSucces=true;
+                            smsg = obj.getString("msg");
 
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
 
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-                    String msg = jObj.getString("msg");
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        Intent i=new Intent(ViewOrderSendActivity.this,ViewOrderSendActivity.class);
-                        i.putExtra("id_order", order.id_order);
-                        startActivity(i);
-                        finish();
                     }
-                    else if (status.contentEquals("2"))
-                    {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        // Error in login. Get the error message
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
 
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_order", order.id_order);
-
-                return params;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
 
-        };
+        }
 
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        @Override
+        public void setSuccesPostExecute() {
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+            builder.setTitle("PICK UP ORDER");
+            builder.setMessage(smsg);
+            builder.setCancelable(false);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+
+                    Intent i=new Intent(ViewOrderSendActivity.this,ViewOrderSendActivity.class);
+                    i.putExtra("id_order", order.id_order);
+                    startActivity(i);
+                    finish();
+                }
+            });
+            android.support.v7.app.AlertDialog alert = builder.create();
+            alert.show();
+
+        }
     }
-    public void completeOrder() {
-        // Tag used to cancel the request
-        String tag_string_req = "go_order";
+
+    public void startOrder() {new startOrder().execute();}
+    public  class startOrder extends MyAsyncTask {
+
+        @Override
+        public Context getContext() {
+            return ViewOrderSendActivity.this;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
+            String url = AppConfig.START_ORDER;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+                nameValuePairs.add(new BasicNameValuePair("id_order",idOrder));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
 
 
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.COMPLETE_ORDER, new Response.Listener<String>() {
+                            isSucces=true;
+                            smsg = obj.getString("msg");
 
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
 
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    String status = jObj.getString("status");
-                    String msg = jObj.getString("msg");
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
-                    // Check for error node in json
-                    if (status.contentEquals("1")) {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        finish();
                     }
-                    else if (status.contentEquals("2"))
-                    {
-                        Toast.makeText(ViewOrderSendActivity.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        // Error in login. Get the error message
-
-                        String errorMsg = jObj.getString("msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
                 }
 
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Login Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-
-                params.put("id_order", order.id_order);
-
-                return params;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
             }
 
-        };
+        }
 
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+        @Override
+        public void setSuccesPostExecute() {
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+            builder.setTitle("ON THE WAY");
+            builder.setMessage(smsg);
+            builder.setCancelable(false);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+
+                    Intent i=new Intent(ViewOrderSendActivity.this,ViewOrderSendActivity.class);
+                    i.putExtra("id_order", order.id_order);
+                    startActivity(i);
+                    finish();
+                }
+            });
+            android.support.v7.app.AlertDialog alert = builder.create();
+            alert.show();
+
+        }
+    }
+
+    public void completeOrder() {new completeOrder().execute();}
+    public  class completeOrder extends MyAsyncTask {
+
+        @Override
+        public Context getContext() {
+            return ViewOrderSendActivity.this;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            postData();
+            return super.doInBackground(params);
+        }
+
+        public void postData()
+        {
+
+            String url = AppConfig.COMPLETE_ORDER;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+                nameValuePairs.add(new BasicNameValuePair("id_order",idOrder));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                if (jsonStr != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonStr);
+
+                            isSucces=true;
+                            smsg = obj.getString("msg");
+
+
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                    }
+                } else {
+                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
+                    emsg="JSON NULL";
+                }
+
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                emsg=e.getMessage();
+            }
+
+        }
+
+        @Override
+        public void setSuccesPostExecute() {
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+            builder.setTitle("COMPLETE ORDER");
+            builder.setMessage(smsg);
+            builder.setCancelable(false);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            android.support.v7.app.AlertDialog alert = builder.create();
+            alert.show();
+
+        }
+    }
+
+    @Override
+    public void setPermissionLocation() {
+
+    }
+
+    @Override
+    public void setPermissionCall() {
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setData(Uri.parse("tel:" + order.user.Phone));
+        startActivity(intent);
     }
 
     public void setAllTextView()
     {
+        textViewOrderType.setText(order.getOrderTypeString());
+        textViewPaymentType.setText("BY "+order.paymentType.toUpperCase());
         textViewCustomerName.setText(order.user.name);
         textViewDestination.setText(order.dropoffAddress);
-        textViewDistance.setText(order.getDistanceString());
+        textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
         textViewOrderId.setText(order.id_order);
         textViewOrigin.setText(order.pickupAddress);
-        textViewPrice.setText(order.getPriceString());
+        textViewPrice.setText(Formater.getPrice(order.getPriceString()));
         textViewNoteOrigin.setText(order.pickupNote);
         textViewNoteDestination.setText(order.dropoffNote);
 
-        setDetail();
+        viewDetail();
+        textViewCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+                builder.setTitle("Call Customer");
+                builder.setMessage("Do you want to call "+order.user.Phone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        setConditionCall();
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+
+        textViewText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(ViewOrderSendActivity.this);
+
+                builder.setTitle("Text Customer");
+                builder.setMessage("Do you want to text "+order.user.Phone+" ?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        Uri sms_uri = Uri.parse("smsto:"+order.user.Phone);
+                        Intent sms_intent = new Intent(Intent.ACTION_SENDTO, sms_uri);
+                        startActivity(sms_intent);
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+        buttonMaps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(ViewOrderSendActivity.this,MapsActivity.class);
+                i.putExtra("pick_up",order.pickupPosition);
+                i.putExtra("drop_off",order.dropoofPosition);
+                startActivity(i);
+            }
+        });
 
         if(order.status.contentEquals("Accept"))
         {
-            buttonGo.setText("OTW");
+            buttonGo.setText("Pick Up");
+            textView1.setBackgroundResource(R.drawable.stepper_active);
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -464,7 +732,9 @@ public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapRea
         }
         else if (order.status.contentEquals("OTW"))
         {
-            buttonGo.setText("Start");
+            textView1.setBackgroundResource(R.drawable.stepper_active);
+            textView2.setBackgroundResource(R.drawable.stepper_active);
+            buttonGo.setText("On the Way");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -480,6 +750,9 @@ public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapRea
         }
         else if (order.status.contentEquals("start"))
         {
+            textView1.setBackgroundResource(R.drawable.stepper_active);
+            textView2.setBackgroundResource(R.drawable.stepper_active);
+            textView3.setBackgroundResource(R.drawable.stepper_active);
             buttonGo.setText("Complete");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -496,58 +769,44 @@ public class ViewOrderSendActivity extends ViewOrderActivity implements OnMapRea
         }
         else if (order.status.contentEquals("Complete"))
         {
-            buttonGo.setText("");
+            textView1.setBackgroundResource(R.drawable.stepper_active);
+            textView2.setBackgroundResource(R.drawable.stepper_active);
+            textView3.setBackgroundResource(R.drawable.stepper_active);
+            textView4.setBackgroundResource(R.drawable.stepper_active);
+            linearLayoutCaller.removeAllViews();
+            buttonGo.setText("NEED HELP?");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    Toast.makeText(ViewOrderSendActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            buttonCancel.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            });
+            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
         }
         else if (order.status.contentEquals("Cancel"))
         {
-            buttonGo.setText("");
+            ((ViewManager)textView1.getParent()).removeView(textView1);
+            ((ViewManager)textView2.getParent()).removeView(textView2);
+            ((ViewManager)textView3.getParent()).removeView(textView3);
+            linearLayoutCaller.removeAllViews();
+            textView4.setText("Canceled");
+            textView4.setBackgroundResource(R.drawable.border_round_red);
+
+            buttonGo.setText("NEED HELP?");
             buttonGo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    Toast.makeText(ViewOrderSendActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            buttonCancel.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            });
+            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
         }
 
     }
 
     public void adjustCamera()
     {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-
-        builder.include(pickUpMarker.getPosition());
-        builder.include(dropOffMarker.getPosition());
-        if(!order.driver.idDriver.contentEquals("0")) {
-            builder.include(driverMarker.getPosition());
-        }
-
-
-        LatLngBounds bounds = builder.build();
-
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width * 0.1); // offset from edges of the map 12% of screen
-
-
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
-        mMap.animateCamera(cu);
     }
 
 

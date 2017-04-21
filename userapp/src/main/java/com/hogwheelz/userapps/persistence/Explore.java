@@ -8,11 +8,13 @@ public class Explore {
 
     public String id;
     public String name;
+    public String photo;
 
     public Explore()
     {
         id="";
         name="";
+        photo="";
     }
 
 }

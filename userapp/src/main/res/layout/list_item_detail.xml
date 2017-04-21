@@ -6,59 +6,73 @@
     android:layout_marginBottom="1dp">
 
     <LinearLayout
-        android:orientation="vertical"
+        android:padding="5dp"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <RelativeLayout
+
+        <ImageView
+            android:src="@color/softgray"
+            android:layout_width="70dp"
+            android:layout_height="70dp" />
+
+        <LinearLayout
+            android:paddingLeft="5dp"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
                 android:id="@+id/item_name"
-                android:layout_margin="5dp"
-                android:layout_alignParentLeft="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nama Menu"
-                android:textSize="24dp"/>
-            <TextView
-                android:id="@+id/price"
-                android:layout_margin="5dp"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:textSize="20dp"
+                android:textColor="@color/black"
+                android:text="Item Name"
+                android:layout_marginBottom="2dp"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="60000"
-                android:textSize="24dp"/>
-        </RelativeLayout>
-        <RelativeLayout
-            android:layout_margin="5dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+                android:gravity="center_vertical">
                 <TextView
-                    android:id="@+id/notes"
-                    android:layout_alignParentLeft="true"
+                    android:id="@+id/price"
+                    android:textColor="@color/black"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="add notes"
-                    android:textSize="14dp"/>
-            <LinearLayout
-                android:padding="1dp"
-                android:background="@color/black"
+                    android:textSize="20dp"
+                    android:text="R0.00"/>
+                <LinearLayout
                     android:layout_alignParentRight="true"
+                    android:gravity="center_vertical"
+                    android:padding="1dp"
                     android:orientation="horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
+
                     <TextView
+                        android:padding="2dp"
+                        android:paddingBottom="3dp"
+                        android:background="@drawable/border_shadow_darker"
                         android:id="@+id/qty"
                         android:gravity="center"
-                        android:background="@color/white"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:textSize="40dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:text="0"
                         />
                 </LinearLayout>
-        </RelativeLayout>
+            </RelativeLayout>
+            <TextView
+                android:id="@+id/note_item"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="12sp">
+
+            </TextView>
+
+
+
+        </LinearLayout>
     </LinearLayout>
 
 </FrameLayout>
