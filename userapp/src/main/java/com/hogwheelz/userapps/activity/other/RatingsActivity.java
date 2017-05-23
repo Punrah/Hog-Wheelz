@@ -129,7 +129,7 @@ public class RatingsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(star<3&&comment.getText().toString().equals(""))
                 {
-                    Toast.makeText(RatingsActivity.this, "Please write you comment", Toast.LENGTH_SHORT).show();
+                    Formater.viewDialog(RatingsActivity.this,"Please give us your feedback about this rating.");
                 }
                 else
                 {
@@ -196,49 +196,55 @@ public class RatingsActivity extends AppCompatActivity {
             HttpHandler sh = new HttpHandler();
             String url = AppConfig.getOrderDetail(idOrder);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        isSucces=true;
 
-                    JSONObject orderJson = new JSONObject(jsonStr);
+                        JSONObject orderJson = new JSONObject(jsonStr);
 
-                    order.id_order=idOrder;
-                    order.driver.idDriver = orderJson.getString("id_driver");
-                    if(!order.driver.idDriver.contentEquals("0")) {
-                        order.driver.name = orderJson.getString("driver_name");
-                        order.driver.plat = orderJson.getString("plat");
-                        order.driver.phone = orderJson.getString("driver_phone");
-                        order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
-                        order.driver.photo = orderJson.getString("foto");
+                        order.id_order=idOrder;
+                        order.driver.idDriver = orderJson.getString("id_driver");
+                        if(!order.driver.idDriver.contentEquals("0")) {
+                            order.driver.name = orderJson.getString("driver_name");
+                            order.driver.plat = orderJson.getString("plat");
+                            order.driver.phone = orderJson.getString("driver_phone");
+                            order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
+                            order.driver.photo = orderJson.getString("foto");
+                        }
+                        order.status = orderJson.getString("status_order");
+                        order.dropoffAddress = orderJson.getString("destination_address");
+                        order.pickupAddress=orderJson.getString("origin_address");
+                        order.price=orderJson.getInt("price");
+                        order.price=orderJson.getInt("price");
+                        order.distance=orderJson.getDouble("distance");
+                        order.pickupNote=orderJson.getString("note_from");
+                        order.dropoffNote=orderJson.getString("note_to");
+                        order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                        order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+                        order.vehicle = orderJson.getString("vehicle");
+                        order.payment_type = orderJson.getString("payment_type");
+                        order.orderType=orderJson.getInt("order_type");
+                        if(order.orderType==3)
+                        {
+                            totalPrice = orderJson.getInt("total_price");
+                        }
+                    } catch (final JSONException e) {
+                        msg="There’s a problem loading this screen";
+                        alertType=DIALOG;
                     }
-                    order.status = orderJson.getString("status_order");
-                    order.dropoffAddress = orderJson.getString("destination_address");
-                    order.pickupAddress=orderJson.getString("origin_address");
-                    order.price=orderJson.getInt("price");
-                    order.price=orderJson.getInt("price");
-                    order.distance=orderJson.getDouble("distance");
-                    order.pickupNote=orderJson.getString("note_from");
-                    order.dropoffNote=orderJson.getString("note_to");
-                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
-                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    order.vehicle = orderJson.getString("vehicle");
-                    order.payment_type = orderJson.getString("payment_type");
-                    order.orderType=orderJson.getInt("order_type");
-                    if(order.orderType==3)
-                    {
-                        totalPrice = orderJson.getInt("total_price");
-                    }
+                } else {
+                    msg="There’s a problem loading this screen";
+                    alertType=DIALOG;
 
-
-
-                } catch (final JSONException e) {
-                    emsg="Order Detail: " + e.getMessage();
                 }
-            } else {
-                emsg="json null";
-
+            } catch (IOException e) {
+                msg="Sorry, we're unable to receive your rating because you're not connected to the internet.";
+                alertType=BAD;
             }
+
             return null;
         }
 
@@ -249,7 +255,7 @@ public class RatingsActivity extends AppCompatActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
 
             name.setText(order.driver.name);
             fotoDriver.setTag(order.driver.photo);
@@ -264,6 +270,21 @@ public class RatingsActivity extends AppCompatActivity {
                 price.setText(Formater.getPrice(order.getPriceString()));
             }
 
+        }
+
+        @Override
+        public void setFailPostExecute() {
+            name.setText("");
+            fotoDriver.setTag("");
+            phone.setText("");
+            textViewIdOrder.setText("");
+            if(order.orderType==3)
+            {
+                price.setText(Formater.getPrice(String.valueOf("")));
+            }
+            else {
+                price.setText(Formater.getPrice(""));
+            }
         }
     }
 
@@ -283,10 +304,15 @@ public class RatingsActivity extends AppCompatActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
-            setAlert();
+        public void setSuccessPostExecute() {
+            setAlertSuccess("Your review has been submitted.",DIALOG);
             session.deleteOrder();
             finish();
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 
@@ -321,27 +347,27 @@ public class RatingsActivity extends AppCompatActivity {
                         if(status.contentEquals("1") )
                         {
                             isSucces=true;
-                            smsg = obj.getString("msg");
+
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+
+                            msg = "Failed to submit ratings and review.";
+                            alertType=DIALOG;
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                       badServerAlert();
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    badServerAlert();
                 }
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                badInternetAlert();
             }
         }
 
@@ -351,6 +377,7 @@ public class RatingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        Toast.makeText(this, "Please rate your driver", Toast.LENGTH_SHORT).show();
 
     }
 }

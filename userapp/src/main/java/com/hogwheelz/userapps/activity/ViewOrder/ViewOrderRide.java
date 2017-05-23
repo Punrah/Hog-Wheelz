@@ -4,14 +4,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
@@ -33,12 +30,16 @@ import com.hogwheelz.userapps.persistence.OrderRide;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
 
 public class ViewOrderRide extends ViewOrder
         implements  GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = ViewOrderRide.class.getSimpleName();
     LinearLayout convertView;
+
+
 
 OrderRide order;
     @Override
@@ -82,6 +83,10 @@ OrderRide order;
 
     public void setAllTextView()
     {
+        if(!(order.status.contentEquals("Complete")||order.status.contentEquals("Cancel"))) {
+            friendsDatabaseReference = friendsDatabase.getReference("location_driver/" + order.driver.idDriver);
+            addValueEventListener(friendsDatabaseReference);
+        }
         textViewDriverName.setText(order.driver.name);
         textViewIdOrder.setText(order.getOrderNo());
         imageViewDriver.setTag(order.driver.photo);
@@ -178,6 +183,7 @@ OrderRide order;
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             textViewPickupNote.setText(order.getPickupNoteString());
             textViewPickupNote.setLayoutParams(params);
+            linearLayoutPickupNote.removeAllViews();
             linearLayoutPickupNote.addView(textViewPickupNote);
         }
 
@@ -188,6 +194,7 @@ OrderRide order;
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             textViewDropoffNote.setText(order.getDropoffNoteString());
             textViewDropoffNote.setLayoutParams(params);
+            linearLayoutDropoffNote.removeAllViews();
             linearLayoutDropoffNote.addView(textViewDropoffNote);
         }
 
@@ -229,16 +236,27 @@ OrderRide order;
                 }
             });
         }
+        else if(order.status.contentEquals("Start"))
+        {
+            buttonCancel.setOnClickListener(null);
+            buttonCancel.setImageResource(R.drawable.cancel_gray);
+        }
         else {
-            //linearLayoutOrderActive.setVisibility(View.VISIBLE);
             buttonCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     cancelOrder();
                 }
             });
+            buttonCancel.setImageResource(R.drawable.cancel);
         }
+
+            refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderRideDetail().execute();
+            }
+        });
 
         buttonDetail.removeAllViews();
     }
@@ -260,45 +278,52 @@ OrderRide order;
             HttpHandler sh = new HttpHandler();
             String url = AppConfig.getOrderDetail(idOrder);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        isSucces=true;
 
-                    JSONObject orderJson = new JSONObject(jsonStr);
+                        JSONObject orderJson = new JSONObject(jsonStr);
 
-                    order.id_order=idOrder;
-                    order.driver.idDriver = orderJson.getString("id_driver");
-                    if(!order.driver.idDriver.contentEquals("0")) {
-                        order.driver.name = orderJson.getString("driver_name");
-                        order.driver.plat = orderJson.getString("plat");
-                        order.driver.phone = orderJson.getString("driver_phone");
-                        order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
-                        order.driver.photo = orderJson.getString("foto");
-                        order.driver.rating = orderJson.getInt("rating_driver");
+                        order.id_order=idOrder;
+
+                        order.status = orderJson.getString("status_order");
+                        if(!(order.status.contentEquals("Complete")||order.status.contentEquals("Cancel"))) {
+                            order.driver.idDriver = orderJson.getString("id_driver");
+                            order.driver.name = orderJson.getString("driver_name");
+                            order.driver.plat = orderJson.getString("plat");
+                            order.driver.phone = orderJson.getString("driver_phone");
+                            order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
+                            order.driver.photo = orderJson.getString("foto");
+                            order.driver.rating = orderJson.getInt("rating_driver");
+                        }
+                        order.dropoffAddress = orderJson.getString("destination_address");
+                        order.pickupAddress=orderJson.getString("origin_address");
+                        order.price=orderJson.getInt("price");
+                        order.distance=orderJson.getDouble("distance");
+                        order.pickupNote=orderJson.getString("note_from");
+                        order.dropoffNote=orderJson.getString("note_to");
+                        order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                        order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+                        order.vehicle = orderJson.getString("vehicle");
+                        order.payment_type = orderJson.getString("payment_type");
+                        order.orderType=orderJson.getInt("order_type");
+                        order.rating = orderJson.getInt("rating_order");
+
+
+                    } catch (final JSONException e) {
+                        badServerAlert();
                     }
-                    order.status = orderJson.getString("status_order");
-                    order.dropoffAddress = orderJson.getString("destination_address");
-                    order.pickupAddress=orderJson.getString("origin_address");
-                    order.price=orderJson.getInt("price");
-                    order.distance=orderJson.getDouble("distance");
-                    order.pickupNote=orderJson.getString("note_from");
-                    order.dropoffNote=orderJson.getString("note_to");
-                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
-                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    order.vehicle = orderJson.getString("vehicle");
-                    order.payment_type = orderJson.getString("payment_type");
-                    order.orderType=orderJson.getInt("order_type");
-                    order.rating = orderJson.getInt("rating_order");
+                } else {
+                    badServerAlert();
 
-
-                } catch (final JSONException e) {
-                    emsg="Order Detail: " + e.getMessage();
                 }
-            } else {
-                emsg="json null";
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -309,7 +334,7 @@ OrderRide order;
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             pickUpMarker = mMap.addMarker(new MarkerOptions()
                     .position(order.pickupPosition)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker)));
@@ -330,7 +355,13 @@ OrderRide order;
             setAllTextView();
             adjustCamera();
         }
+
+        @Override
+        public void setFailPostExecute() {
+
+        }
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -26,6 +26,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
 public class FoodActivity extends RootActivity {
 
     private String TAG = FoodActivity.class.getSimpleName();
@@ -178,24 +180,32 @@ public class FoodActivity extends RootActivity {
         protected Void doInBackground(Void... params) {
             String url = AppConfig.getExploreURL();
             HttpHandler sh = new HttpHandler();
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    response = new JSONArray(jsonStr);
-                    isSucces=true;
+            try {
 
-                } catch (final JSONException e) {
-                    emsg="Json parsing error: " + e.getMessage();
+
+                String jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        response = new JSONArray(jsonStr);
+                        isSucces = true;
+
+                    } catch (final JSONException e) {
+                        msg = "Json parsing error: " + e.getMessage();
+                    }
+                } else {
+                    msg = "Couldn't get json from server.";
+
                 }
-            } else {
-                emsg="Couldn't get json from server.";
-
             }
+             catch (IOException e)
+             {
+                 badInternetAlert();
+             }
             return null;
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
 
         if (response.length() > 0) {
 
@@ -275,6 +285,11 @@ public class FoodActivity extends RootActivity {
                     }
                 }
             }
+
+        @Override
+        public void setFailPostExecute() {
+
+        }
 
         @Override
         public Context getContext() {

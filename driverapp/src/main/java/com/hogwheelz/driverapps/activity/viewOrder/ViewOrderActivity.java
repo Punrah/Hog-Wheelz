@@ -20,6 +20,7 @@ public abstract class ViewOrderActivity extends RootActivity {
     String idOrder;
 
     ImageView back;
+    ImageView refresh;
 
     Marker pickUpMarker;
     Marker dropOffMarker;
@@ -82,6 +83,8 @@ public abstract class ViewOrderActivity extends RootActivity {
          linearLayoutDetail = (LinearLayout) findViewById(R.id.detail);
 
         back = (ImageView) findViewById(R.id.back);
+
+        refresh = (ImageView) findViewById(R.id.refresh);
         back.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {

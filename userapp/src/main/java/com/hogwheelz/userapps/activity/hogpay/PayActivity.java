@@ -1,5 +1,6 @@
 package com.hogwheelz.userapps.activity.hogpay;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Formater;
@@ -20,6 +22,8 @@ import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 public class PayActivity extends RootActivity {
     TextView textViewBalance;
@@ -125,7 +129,7 @@ new calculateBalance().execute();
         new calculateBalance().execute();
     }
 
-    private class calculateBalance extends AsyncTask<Void, Void, Void> {
+    private class calculateBalance extends MyAsyncTask{
         @Override
 
         protected void onPreExecute() {
@@ -140,29 +144,44 @@ new calculateBalance().execute();
 
             String url = AppConfig.getBalanceURL(UserGlobal.getUser(PayActivity.this).idCustomer);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    balance = jsonObj.getString("saldo");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        balance = jsonObj.getString("saldo");
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-                    Toast.makeText(PayActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                    }
+                } else {
+                    badServerAlert();
                 }
-            } else {
-                Toast.makeText(PayActivity.this, "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
+
+        @Override
+        public Context getContext() {
+            return PayActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             UserGlobal.balance=Double.parseDouble(balance);
             textViewBalance.setText(Formater.getPrice(balance));
+        }
 
-
-            // Dismiss the progress dialog
+        @Override
+        public void setFailPostExecute() {
+            UserGlobal.balance=Double.parseDouble("0");
+            textViewBalance.setText(Formater.getPrice("0"));
 
         }
     }

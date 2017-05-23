@@ -35,6 +35,8 @@ public class DriverSQLiteHandler extends SQLiteOpenHelper {
 	private static final String KEY_USERNAME = "email";
 	private static final String KEY_PHONE = "phone";
 	private static final String KEY_PLAT = "plat";
+	private static final String KEY_PHOTO = "photo";
+    private static final String KEY_TYPE = "type";
 
 	public DriverSQLiteHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,6 +50,8 @@ public class DriverSQLiteHandler extends SQLiteOpenHelper {
 				+ KEY_NAME + " TEXT,"
 				+ KEY_USERNAME + " TEXT,"
 				+ KEY_PLAT + " TEXT,"
+				+ KEY_PHOTO + " TEXT,"
+                + KEY_TYPE + " TEXT,"
 				+ KEY_PHONE + " TEXT" + ")";
 		db.execSQL(CREATE_LOGIN_TABLE);
 
@@ -76,6 +80,8 @@ public class DriverSQLiteHandler extends SQLiteOpenHelper {
 		values.put(KEY_USERNAME, driver.username); // Email
 		values.put(KEY_PHONE, driver.phone); // Phone
 		values.put(KEY_PLAT, driver.plat);
+		values.put(KEY_PHOTO, driver.photo);
+        values.put(KEY_TYPE, driver.type);
 		// Inserting Row
 		long id = db.insert(TABLE_DRIVER, null, values);
 		db.close(); // Closing database connection
@@ -100,6 +106,8 @@ public class DriverSQLiteHandler extends SQLiteOpenHelper {
 			driver.username=cursor.getString(cursor.getColumnIndex(KEY_USERNAME));
 			driver.phone=cursor.getString(cursor.getColumnIndex(KEY_PHONE));
 			driver.plat=cursor.getString(cursor.getColumnIndex(KEY_PLAT));
+			driver.photo=cursor.getString(cursor.getColumnIndex(KEY_PHOTO));
+            driver.type=cursor.getString(cursor.getColumnIndex(KEY_TYPE));
 		}
 		cursor.close();
 		db.close();

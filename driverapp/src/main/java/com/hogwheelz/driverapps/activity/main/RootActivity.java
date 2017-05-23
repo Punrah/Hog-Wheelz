@@ -23,7 +23,9 @@ import com.hogwheelz.driverapps.activity.viewOrder.ViewOrderSendActivity;
 import com.hogwheelz.driverapps.app.Config;
 import com.hogwheelz.driverapps.helper.DriverSQLiteHandler;
 import com.hogwheelz.driverapps.helper.MessageSQLiteHandler;
+import com.hogwheelz.driverapps.persistence.DriverGlobal;
 import com.hogwheelz.driverapps.persistence.Message;
+import com.hogwheelz.driverapps.service.LocationUpdateService;
 import com.hogwheelz.driverapps.util.NotificationUtils;
 
 import org.json.JSONException;
@@ -214,15 +216,6 @@ public abstract class RootActivity extends AppCompatActivity {
 
                 }
                 break;
-            case PERMISSION_REQUEST_CALL:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setPermissionLocation();
-                } else {
-
-                    Toast.makeText(getApplicationContext(),"Permission Denied, You cannot access phone call.",Toast.LENGTH_LONG).show();
-
-                }
-                break;
 
         }
     }
@@ -247,6 +240,21 @@ public abstract class RootActivity extends AppCompatActivity {
         {
             requestPermission(Manifest.permission.CALL_PHONE,PERMISSION_REQUEST_CALL,getApplicationContext(),RootActivity.this);
         }
+    }
+
+    public void startLocationServices()
+    {
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        intent.putExtra("id_driver", DriverGlobal.getDriver(getApplicationContext()).idDriver);
+        startService(intent);
+    }
+
+
+    @Override
+    public void onStop() {
+        stopService(new Intent(this, LocationUpdateService.class));
+        super.onStop();
+
     }
 
 

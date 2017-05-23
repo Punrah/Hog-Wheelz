@@ -3,6 +3,7 @@ package com.hogwheelz.userapps.activity.hogpay;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.webkit.WebView;
@@ -17,7 +18,7 @@ import com.hogwheelz.userapps.helper.HttpHandler;
 
 import java.io.IOException;
 
-public class WebActivity extends RootActivity {
+public class WebActivityNoRoot extends AppCompatActivity {
 
     private WebView webView;
     TextView title;
@@ -38,7 +39,7 @@ public class WebActivity extends RootActivity {
         back.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                WebActivity.super.onBackPressed();
+                WebActivityNoRoot.super.onBackPressed();
             }
         });
 
@@ -56,15 +57,6 @@ public class WebActivity extends RootActivity {
 
     }
 
-    @Override
-    public void setPermissionLocation() {
-
-    }
-
-    @Override
-    public void setPermissionCall() {
-
-    }
 
     private class getWeb extends MyAsyncTask {
         @Override
@@ -83,6 +75,7 @@ public class WebActivity extends RootActivity {
             try {
                 web = sh.makeServiceCall(url);
                 isSucces=true;
+
             } catch (IOException e) {
                 badInternetAlert();
             }
@@ -90,24 +83,16 @@ public class WebActivity extends RootActivity {
             return null;
         }
 
-        @Override
-        public void setPreloading() {
-
-        }
-
-        @Override
-        public void setPostLoading() {
-
-        }
 
         @Override
         public Context getContext() {
-            return WebActivity.this;
+            return WebActivityNoRoot.this;
         }
 
         @Override
         public void setSuccessPostExecute() {
             webView.loadData(web, "text/html", "UTF-8");
+
 
         }
 

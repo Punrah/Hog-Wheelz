@@ -1,5 +1,6 @@
 package com.hogwheelz.userapps.activity.makeOrder;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -8,14 +9,20 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,10 +42,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
+import com.hogwheelz.userapps.persistence.DriverLocation;
 import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONArray;
@@ -46,6 +61,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -103,12 +122,15 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
     Double driverLocationLng[];
     String vehicleType[];
 
-    Marker driver[];
+    List<Marker> driver;
 
     ImageView buttonBook;
 
 
+    public FirebaseDatabase friendsDatabase;
+    public DatabaseReference friendsDatabaseReference;
 
+    List<DriverLocation> driverLocation;
 
 
     private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
@@ -234,30 +256,118 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
             }
         });
 
+
+
+
         if(UserGlobal.balance<=0)
         {
             radioHogpay.setEnabled(false);
             radioCash.setChecked(true);
         }
 
+         /*get instance of our friendsDatabase*/
+        friendsDatabase = FirebaseDatabase.getInstance();
+        /*get a reference to the friends node location*/
+        friendsDatabaseReference = friendsDatabase.getReference("location_driver");
+        driver = new ArrayList<Marker>();
+
+
 
         buttonBook = (ImageView) findViewById(R.id.book_button);
 
+        buttonBook.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
         inizializeOrder();
+    }
+
+    /*updates data in realtime, displays the data in a list*/
+    public void addValueEventListener(final DatabaseReference friendsReference) {
+
+
+        friendsReference.addValueEventListener(new ValueEventListener() {
+
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String count;
+                for (DataSnapshot snap: dataSnapshot.getChildren()) {
+                    Log.e(snap.getKey(),snap.getChildrenCount() + "");
+                }
+
+                driverLocation = new ArrayList<>();
+                /*this is called when first passing the data and
+                * then whenever the data is updated*/
+                   /*get the data children*/
+
+                Iterable<DataSnapshot> snapshotIterator = dataSnapshot.getChildren();
+                Iterator<DataSnapshot> iterator = snapshotIterator.iterator();
+                while (iterator.hasNext()) {
+                    /*get the values as a Order object*/
+                    DriverLocation value = iterator.next().getValue(DriverLocation.class);
+                    /*add the friend to the list for the adapter*/
+
+                    driverLocation.add(value);
+                }
+
+                for(int i=0;i<driver.size();i++)
+                {
+                    driver.get(i).remove();
+                }
+
+                driver = new ArrayList<Marker>();
+
+                for(int i=0;i<driverLocation.size();i++) {
+                    if (driverLocation.get(i).type.contentEquals("bike")) {
+
+                        driver.add(mMap.addMarker(new MarkerOptions()
+                                .position(driverLocation.get(i).getLatLang())
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_motor))));
+                    } else if (driverLocation.get(i).type.contentEquals("car")) {
+
+                        driver.add(mMap.addMarker(new MarkerOptions()
+                                .position(driverLocation.get(i).getLatLang())
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_car))));
+                    }
+                }
+
+                if(vehicleState=="bike")
+                {
+                    bikeView();
+                }
+                else if (vehicleState=="car")
+                {
+                    carView();
+                }
+
+
+        }
+
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                /*listener failed or was removed for security reasons*/
+            }
+        });
+
     }
 
 
     private void bikeView() {
         vehicleState="bike";
         setPriceByVehicle();
-        for(int i=0;i<driverLocationLat.length;i++) {
+        for(int i=0;i<driverLocation.size();i++) {
 
-            if(vehicleType[i].contentEquals("car")) {
-                driver[i].setVisible(false);
+            if(driverLocation.get(i).type.contentEquals("car")) {
+                driver.get(i).setVisible(false);
             }
             else
             {
-                driver[i].setVisible(true);
+                driver.get(i).setVisible(true);
             }
 
         }
@@ -270,14 +380,14 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
     private void carView() {
         vehicleState="car";
         setPriceByVehicle();
-        for(int i=0;i<driverLocationLat.length;i++) {
+        for(int i=0;i<driverLocation.size();i++) {
 
-            if(vehicleType[i].contentEquals("bike")) {
-                driver[i].setVisible(false);
+            if(driverLocation.get(i).type.contentEquals("bike")) {
+                driver.get(i).setVisible(false);
             }
             else
             {
-                driver[i].setVisible(true);
+                driver.get(i).setVisible(true);
             }
         }
 
@@ -308,7 +418,7 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            editTextPickupNote.setHint("add notes");
+            editTextPickupNote.setHint("Add notes");
             editTextPickupNote.setLayoutParams(params);
             editTextPickupNote.setBackgroundColor(Color.TRANSPARENT);
             editTextPickupNote.setTextSize(14);
@@ -328,7 +438,7 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            editTextDropoffNote.setHint("add notes");
+            editTextDropoffNote.setHint("Add notes");
             editTextDropoffNote.setLayoutParams(params);
             editTextDropoffNote.setBackgroundColor(Color.TRANSPARENT);
             editTextDropoffNote.setTextSize(14);
@@ -412,84 +522,6 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
         return result.toString();
     }
 
-    public class getDriverLocation extends AsyncTask<Void, Void, Void> {
-        @Override
-
-
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-        protected Void doInBackground(Void... arg0) {
-
-            HttpHandler sh = new HttpHandler();
-
-            String myLat = String.valueOf(lat);
-            String myLng = String.valueOf(lng);
-            String url = AppConfig.getDriverLocationURL(myLat + "," + myLng);
-
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    JSONArray arrayDriverLocation = jsonObj.getJSONArray("records");
-
-                    driverLocationLat= new Double[arrayDriverLocation.length()];
-                    driverLocationLng= new Double[arrayDriverLocation.length()];
-                    vehicleType = new String[arrayDriverLocation.length()];
-                    for(int i=0;i<arrayDriverLocation.length();i++)
-                    {
-                        JSONObject location=arrayDriverLocation.getJSONObject(i);
-                        driverLocationLat[i] = Double.parseDouble(location.getString("lat_cur").toString());
-                        driverLocationLng[i] = Double.parseDouble(location.getString("long_cur").toString());
-                        vehicleType[i] = location.getString("vehicle");
-                    }
-
-                } catch (final JSONException e) {
-                    Toast.makeText(MakeOrder.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
-                }
-            } else {
-                Toast.makeText(MakeOrder.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-
-            }
-            return null;
-        }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            driver= new Marker[driverLocationLat.length];
-                for(int i=0;i<driverLocationLat.length;i++) {
-
-                    if (vehicleType[i].contentEquals("bike")) {
-
-                        driver[i] = mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_motor)));
-                    } else if (vehicleType[i].contentEquals("car")) {
-
-                        driver[i] = mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(driverLocationLat[i], driverLocationLng[i]))
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_car)));
-                    }
-                }
-
-                if(vehicleState=="bike")
-                {
-                    bikeView();
-                }
-                else if (vehicleState=="car")
-                {
-                    carView();
-                }
-
-
-
-            // Dismiss the progress dialog
-
-        }
-    }
 
     public void adjustCamera()
     {
@@ -514,8 +546,8 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
 
     public void setAwal()
     {
-        textViewPrice.setText("");
-        textViewDistance.setText("");
+        textViewPrice.setText(Formater.getPrice("0"));
+        textViewDistance.setText(Formater.getDistance("0"));
         radioHogpay.setChecked(false);
         radioCash.setChecked(true);
         buttonBook.setImageResource(R.drawable.order_inactive);;
@@ -536,6 +568,7 @@ public abstract class MakeOrder extends RootActivity implements OnMapReadyCallba
         }
         else
         {
+
         }
     }
 

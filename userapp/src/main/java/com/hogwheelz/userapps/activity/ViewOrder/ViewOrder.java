@@ -20,9 +20,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Marker;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.activity.makeOrder.CancelReasonActivity;
+import com.hogwheelz.userapps.persistence.DriverLocation;
+
+import java.util.List;
 
 
 public abstract class ViewOrder extends RootActivity
@@ -30,7 +38,10 @@ public abstract class ViewOrder extends RootActivity
 
     private static final String TAG = ViewOrder.class.getSimpleName();
 
+    public FirebaseDatabase friendsDatabase;
+    public DatabaseReference friendsDatabaseReference;
 
+    DriverLocation driverLocation;
 
     public GoogleMap mMap;
     protected GoogleApiClient mGoogleApiClient;
@@ -71,6 +82,7 @@ public abstract class ViewOrder extends RootActivity
     LinearLayout linearLayoutDetail;
     LinearLayout linearLayoutIsiDetail;
     ImageView back;
+    ImageView refresh;
 
     TextView textViewDistanceLabel;
     TextView textViewFareLabel;
@@ -106,6 +118,7 @@ public abstract class ViewOrder extends RootActivity
         toolbar.setTitle("Driver Found");
         setSupportActionBar(toolbar);
         back = (ImageView) findViewById(R.id.back);
+        refresh=(ImageView) findViewById(R.id.refresh);
         back.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
@@ -170,6 +183,9 @@ public abstract class ViewOrder extends RootActivity
 
         idOrder=getIntent().getStringExtra("id_order");
 
+         /*get instance of our friendsDatabase*/
+        friendsDatabase = FirebaseDatabase.getInstance();
+
         initializeOrder();
     }
 
@@ -227,6 +243,32 @@ public abstract class ViewOrder extends RootActivity
             layoutParams.setMargins(0,0,0,10);
         }
 
+
+    }
+
+    /*updates data in realtime, displays the data in a list*/
+    public void addValueEventListener(final DatabaseReference friendsReference) {
+
+
+        friendsReference.addValueEventListener(new ValueEventListener() {
+
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                driverLocation = dataSnapshot.getValue(DriverLocation.class);
+                driverMarker.setPosition(driverLocation.getLatLang());
+
+
+            }
+
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                /*listener failed or was removed for security reasons*/
+            }
+        });
 
     }
 

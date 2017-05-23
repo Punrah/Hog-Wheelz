@@ -14,11 +14,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Config;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.UserSQLiteHandler;
 
 import org.apache.http.HttpEntity;
@@ -45,7 +47,7 @@ import com.hogwheelz.userapps.persistence.User;
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
     private Button btnLogin;
-    private Button btnLinkToRegister;
+    private TextView btnLinkToRegister;
     private EditText inputEmail;
     private EditText inputPassword;
     private ProgressDialog pDialog;
@@ -60,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
         btnLogin = (Button) findViewById(R.id.button_login);
-        btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
+        btnLinkToRegister = (TextView) findViewById(R.id.btnLinkToRegisterScreen);
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
@@ -88,14 +90,18 @@ public class LoginActivity extends AppCompatActivity {
                 String password = inputPassword.getText().toString().trim();
 
                 // Check for empty data in the form
-                if (!email.isEmpty() && !password.isEmpty()) {
+                if(email.isEmpty())
+                {
+                    Formater.viewDialog(LoginActivity.this,getString(R.string.empty_email_pop_up));
+                }
+                else if(password.isEmpty())
+                {
+                    Formater.viewDialog(LoginActivity.this,getString(R.string.empty_password_pop_up));
+                }
+                else
+                {
                     // login user
                     new checkLogin(email, password).execute();
-                } else {
-                    // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(),
-                            "Please enter the credentials!", Toast.LENGTH_LONG)
-                            .show();
                 }
             }
 
@@ -143,7 +149,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        public void setMyPostExecute () {
+        public void setSuccessPostExecute() {
             // user successfully logged in
             // Create login session
             session.setLogin(true);
@@ -154,6 +160,11 @@ public class LoginActivity extends AppCompatActivity {
                     MainActivity.class);
             startActivity(intent);
             finish();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
 
         public void postData() {
@@ -190,38 +201,33 @@ public class LoginActivity extends AppCompatActivity {
                             user.name = obj.getString("name");
                             user.username = obj.getString("email");
                             user.idCustomer=obj.getString("id_customer");
-                            smsg = obj.getString("msg");
-                        } else {
-                            emsg = obj.getString("msg");
-                            //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        }
+                        else if (status.contentEquals("2"))
+                        {
+                            badServerAlert();
+
+                        }
+                        else {
+                            msg = getString(R.string.wrong_password_pop_up);
+                            msgTitle = getString(R.string.wrong_password_pop_up_title);
+                            alertType=DIALOG_TITLE;
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg = e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                        badServerAlert();
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg = "JSON NULL";
+                    badServerAlert();
                 }
 
 
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                emsg = e.getMessage();
+                badInternetAlert();
             }
         }
 
     }
 
-    private void showDialog() {
-        if (!pDialog.isShowing())
-            pDialog.show();
-    }
 
-    private void hideDialog() {
-        if (pDialog.isShowing())
-            pDialog.dismiss();
-    }
 }

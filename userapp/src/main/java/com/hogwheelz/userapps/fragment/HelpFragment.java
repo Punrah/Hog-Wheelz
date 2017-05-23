@@ -1,5 +1,6 @@
 package com.hogwheelz.userapps.fragment;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,14 +13,18 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.other.HelpActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.helper.HttpHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 
 public class HelpFragment extends Fragment {
@@ -106,12 +111,11 @@ public class HelpFragment extends Fragment {
         return myInflater;
     }
 
-    private class callCenter extends AsyncTask<Void, Void, Void> {
-        @Override
+    private class callCenter extends MyAsyncTask{
+
 
         protected void onPreExecute() {
             super.onPreExecute();
-            // Showing progress dialog
 
 
         }
@@ -121,27 +125,48 @@ public class HelpFragment extends Fragment {
 
             String url = AppConfig.URL_CALL_CENTER;
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    callCenter = jsonObj.getString("nohp");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        callCenter = jsonObj.getString("nohp");
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-                    //Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                   }
+                } else {
+                    badServerAlert();
                 }
-            } else {
-                // Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
+        @Override
+        public void setPreloading() {
+
+        }
+
+        @Override
+        public void setPostLoading() {
+        }
+
+        @Override
+        public Context getContext() {
+            return getActivity();
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             helpCall.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
 // Start an alpha animation for clicked item
                     Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
                     animation1.setDuration(800);
@@ -175,10 +200,20 @@ public class HelpFragment extends Fragment {
                 }
             });
 
+        }
 
-            // Dismiss the progress dialog
+        @Override
+        public void setFailPostExecute() {
+            helpCall.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                }
+            });
 
         }
+
+
     }
+
 
 }

@@ -1,5 +1,6 @@
 package com.hogwheelz.driverapps.fragment;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,9 +11,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.hogwheelz.driverapps.R;
+import com.hogwheelz.driverapps.activity.asynctask.DriverImageAsyncTask;
+import com.hogwheelz.driverapps.activity.main.LoginActivity;
 import com.hogwheelz.driverapps.app.AppConfig;
 import com.hogwheelz.driverapps.app.Formater;
+import com.hogwheelz.driverapps.helper.DriverSQLiteHandler;
 import com.hogwheelz.driverapps.helper.HttpHandler;
+import com.hogwheelz.driverapps.helper.SessionManager;
 import com.hogwheelz.driverapps.persistence.DriverGlobal;
 
 import org.json.JSONException;
@@ -23,12 +28,17 @@ public class BiographyFragment extends Fragment {
 
     TextView textViewName,textViewUsername,textViewUserPhone,textViewUserPlat;
 
-
+    private DriverSQLiteHandler db;
+    private SessionManager session;
     ImageView star1;
     ImageView star2;
     ImageView star3;
     ImageView star4;
     ImageView star5;
+
+    ImageView imageViewDriver;
+
+    TextView buttonLogout;
 
     int ratings;
     public BiographyFragment() {
@@ -46,10 +56,15 @@ public class BiographyFragment extends Fragment {
         // Inflate the layout for this fragment
         View myInflate=inflater.inflate(R.layout.fragment_biography, container, false);
 
+        db = new DriverSQLiteHandler(getActivity().getApplicationContext());
+        // session manager
+        session = new SessionManager(getActivity());
+
         textViewName=(TextView) myInflate.findViewById(R.id.name);
         textViewUsername=(TextView) myInflate.findViewById(R.id.username);
         textViewUserPhone=(TextView) myInflate.findViewById(R.id.phone);
         textViewUserPlat=(TextView) myInflate.findViewById(R.id.plat);
+        imageViewDriver=(ImageView) myInflate.findViewById(R.id.img_driver);
 
         star1 = (ImageView) myInflate.findViewById(R.id.star1);
         star2 = (ImageView) myInflate.findViewById(R.id.star2);
@@ -57,14 +72,24 @@ public class BiographyFragment extends Fragment {
         star4 = (ImageView) myInflate.findViewById(R.id.star4);
         star5 = (ImageView) myInflate.findViewById(R.id.star5);
 
+        buttonLogout=(TextView) myInflate.findViewById(R.id.logout);
 
 
+        buttonLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logoutUser();
+            }
+        });
 
         //Displaying the user details on the screen
         textViewName.setText(DriverGlobal.getDriver(getActivity().getApplicationContext()).name);
         textViewUsername.setText(DriverGlobal.getDriver(getActivity().getApplicationContext()).username);
         textViewUserPhone.setText(DriverGlobal.getDriver(getActivity().getApplicationContext()).phone);
         textViewUserPlat.setText(DriverGlobal.getDriver(getActivity().getApplicationContext()).plat);
+
+        imageViewDriver.setTag(DriverGlobal.getDriver(getActivity().getApplicationContext()).photo);
+        new DriverImageAsyncTask().execute(imageViewDriver);
         new calculateRatings().execute();
         return myInflate;
     }
@@ -160,6 +185,17 @@ public class BiographyFragment extends Fragment {
             // Dismiss the progress dialog
 
         }
+    }
+
+    private void logoutUser() {
+        session.setLogin(false);
+
+        db.deleteDriver();
+
+        // Launching the login activity
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
+        getActivity().finish();
     }
 
 }

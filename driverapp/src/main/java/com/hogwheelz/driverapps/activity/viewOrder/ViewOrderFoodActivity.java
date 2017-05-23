@@ -63,6 +63,7 @@ public class ViewOrderFoodActivity extends ViewOrderActivity  {
 
     private void viewDetail()
     {
+        linearLayoutDetail.removeAllViews();
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_food_detail, linearLayoutDetail, false);
         LinearLayout linearLayoutItem = (LinearLayout) convertView.findViewById(R.id.list_item);
@@ -677,7 +678,9 @@ public class ViewOrderFoodActivity extends ViewOrderActivity  {
                     Toast.makeText(ViewOrderFoodActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
         else if (order.status.contentEquals("Cancel"))
         {
@@ -695,8 +698,16 @@ public class ViewOrderFoodActivity extends ViewOrderActivity  {
                     Toast.makeText(ViewOrderFoodActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
+            }
+        });
 
     }
 

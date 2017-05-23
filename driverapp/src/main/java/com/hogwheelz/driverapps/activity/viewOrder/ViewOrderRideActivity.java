@@ -620,7 +620,9 @@ OrderRide order;
                     Toast.makeText(ViewOrderRideActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
         else if (order.status.contentEquals("Cancel"))
         {
@@ -638,8 +640,16 @@ OrderRide order;
                     Toast.makeText(ViewOrderRideActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
+            }
+        });
 
     }
 

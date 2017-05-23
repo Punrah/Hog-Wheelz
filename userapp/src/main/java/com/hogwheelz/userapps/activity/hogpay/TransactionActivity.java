@@ -87,7 +87,7 @@ public class TransactionActivity extends RootActivity implements SwipeRefreshLay
         );
     }
 
-    private class calculateBalance extends AsyncTask<Void, Void, Void> {
+    private class calculateBalance extends MyAsyncTask {
         @Override
 
         protected void onPreExecute() {
@@ -96,34 +96,58 @@ public class TransactionActivity extends RootActivity implements SwipeRefreshLay
             textViewBalance.setText("Please wait");
 
         }
+
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
 
             String url = AppConfig.getBalanceURL(UserGlobal.getUser(getApplicationContext()).idCustomer);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    balance = jsonObj.getString("saldo");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        balance = jsonObj.getString("saldo");
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-//                    Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                //Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+                    } catch (final JSONException e) {
+                        badServerAlert();
+}
+                } else {
+                badServerAlert();}
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
+        @Override
+        public void setPreloading() {
+
+        }
+
+        @Override
+        public void setPostLoading() {
+
+        }
+
+        @Override
+        public Context getContext() {
+            return TransactionActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             textViewBalance.setText(Formater.getPrice(String.valueOf(balance)));
 
+        }
 
-            // Dismiss the progress dialog
+        @Override
+        public void setFailPostExecute() {
+            textViewBalance.setText(Formater.getPrice(String.valueOf("0")));
 
         }
     }
@@ -184,20 +208,20 @@ public class TransactionActivity extends RootActivity implements SwipeRefreshLay
                         }
                         else
                         {
-                            emsg="Data null";
+                            msg ="Data null";
                         }
 
                     } catch (final JSONException e) {
-                        emsg="Json parsing error: " + e.getMessage();
+                        msg ="Json parsing error: " + e.getMessage();
                     }
                 } else {
-                    emsg="Couldn't get json from server.";
+                    msg ="Couldn't get json from server.";
 
                 }
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
         }
 
@@ -214,7 +238,7 @@ public class TransactionActivity extends RootActivity implements SwipeRefreshLay
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
 
                 for (int i = 0; i < response.length(); i++) {
                     try {
@@ -236,6 +260,11 @@ public class TransactionActivity extends RootActivity implements SwipeRefreshLay
 
                 adapter.notifyDataSetChanged();
 
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 

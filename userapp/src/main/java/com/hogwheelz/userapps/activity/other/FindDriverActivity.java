@@ -1,5 +1,7 @@
 package com.hogwheelz.userapps.activity.other;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,14 +14,28 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
+import com.hogwheelz.userapps.activity.makeOrder.CancelReasonActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.AppController;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FindDriverActivity extends RootActivity {
@@ -44,7 +60,7 @@ private TextView textViewIdOrder;
         buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cancelOrder();
+                new cancelAcceptedOrder().execute();
             }
         });
 
@@ -61,72 +77,83 @@ private TextView textViewIdOrder;
 
     }
 
-    private void cancelOrder() {
-            // Tag used to cancel the request
-            String tag_string_req = "cancel_order";
+
+    public class cancelAcceptedOrder extends MyAsyncTask {
 
 
-            StringRequest strReq = new StringRequest(Request.Method.POST,
-                    AppConfig.CANCEL_ORDER, new Response.Listener<String>() {
 
-                @Override
-                public void onResponse(String response) {
-                    Log.d(TAG, "Login Response: " + response.toString());
+        protected Void doInBackground(Void... params) {
+            // TODO Auto-generated method stub
+            postData();
+            return null;
+        }
 
-                    try {
-                        JSONObject jObj = new JSONObject(response);
-                        String status = jObj.getString("status");
-                        String msg = jObj.getString("msg");
+        @Override
+        public Context getContext() {
+            return FindDriverActivity.this;
+        }
 
-                        // Check for error node in json
-                        if (status.contentEquals("1")) {
-                            finish();
-                            Toast.makeText(FindDriverActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        }
-                        else if (status.contentEquals("2"))
-                        {
-                            Toast.makeText(FindDriverActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        }
-                        else {
-                            // Error in login. Get the error message
+        @Override
+        public void setSuccessPostExecute() {
+            setAlertSuccessClose("Your order has been cancelled.");
+        }
 
-                            String errorMsg = jObj.getString("msg");
-                            Toast.makeText(getApplicationContext(),
-                                    errorMsg, Toast.LENGTH_LONG).show();
-                        }
-                    } catch (JSONException e) {
-                        // JSON error
-                        e.printStackTrace();
+        @Override
+        public void setFailPostExecute() {
+        }
 
-                        Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        public void postData() {
+            // Create a new HttpClient and Post Header
+
+
+            String url = AppConfig.CANCEL_ORDER;
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(url);
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                nameValuePairs.add(new BasicNameValuePair("id_order",idOrder));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                String jsonStr = EntityUtils.toString(entity, "UTF-8");
+
+                try {
+                    JSONObject jObj = new JSONObject(jsonStr);
+                    String status = jObj.getString("status");
+
+                    // Check for error node in json
+                    if (status.contentEquals("1")) {
+                        isSucces=true;
                     }
-
-                }
-            }, new Response.ErrorListener() {
-
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e(TAG, "Login Error: " + error.getMessage());
-                    Toast.makeText(getApplicationContext(),
-                            error.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }) {
-
-                @Override
-                protected Map<String, String> getParams() {
-                    // Posting parameters to login url
-                    Map<String, String> params = new HashMap<String, String>();
-
-                    params.put("id_order",idOrder);
-
-                    return params;
+                    else if (status.contentEquals("2"))
+                    {
+                        msgTitle="Unable to Cancel Order";
+                        msg="Sorry, we're unable to cancel your order at this time. Please wait a moment and try again.";
+                        alertType=DIALOG_TITLE;
+                    }
+                    else {
+                        msgTitle="Unable to Cancel Order";
+                        msg="Sorry, we're unable to cancel your order at this time. Please wait a moment and try again.";
+                        alertType=DIALOG_TITLE;
+                    }
+                } catch (JSONException e) {
+                    msgTitle="Unable to Cancel Order";
+                    msg="Sorry, we're unable to cancel your order at this time. Please wait a moment and try again.";
+                    alertType=DIALOG_TITLE;
                 }
 
-            };
+            } catch (IOException e) {
+                badInternetAlert();
+            }
+        }
 
-            // Adding request to request queue
-            AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+
 
     }
+
 
 }

@@ -9,6 +9,7 @@
 
 
     <ScrollView
+        android:layout_above="@id/order_food_recap"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
@@ -233,12 +234,12 @@
 
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/checkout"
                 android:gravity="center"
                 android:layout_weight="2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:id="@+id/checkout"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/right"/>

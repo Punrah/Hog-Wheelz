@@ -13,6 +13,7 @@ import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.persistence.User;
 import com.hogwheelz.userapps.persistence.UserGlobal;
 
@@ -66,32 +67,31 @@ public class ChangePasswordActivity extends RootActivity {
             public void onClick(View v) {
                 if(oldPass.getText().toString().equals(""))
                 {
-                    Toast.makeText(ChangePasswordActivity.this, "Field old password is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.user_havent_enter_their_old_password), Toast.LENGTH_SHORT).show();
                 }
                 else if(newPass.getText().toString().equals(""))
                 {
-                    Toast.makeText(ChangePasswordActivity.this, "Field new password is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.user_havent_enter_their_new_password), Toast.LENGTH_SHORT).show();
                 }
                 else if(confirmPass.getText().toString().equals(""))
                 {
-                    Toast.makeText(ChangePasswordActivity.this, "Field confirm new password is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.user_havent_enter_their_new_password_confirmation), Toast.LENGTH_SHORT).show();
                 }
-                if(!newPass.getText().toString().equals(confirmPass.getText().toString()))
+                else if(newPass.getText().toString().length()<8)
                 {
-                    AlertDialog.Builder  alert = new AlertDialog.Builder(ChangePasswordActivity.this);
-                    alert.setTitle("Unable To Process");
-                    alert.setMessage("Your new password is not match");
-                    alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    });
-                    alert.show();
+                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.users_new_password_format_are_wrong), Toast.LENGTH_SHORT).show();
+                }
+                else if(!newPass.getText().toString().matches("[A-Za-z0-9]+"))
+                {
+                    Toast.makeText(ChangePasswordActivity.this, getString(R.string.users_new_password_is_not_alphanumerics), Toast.LENGTH_SHORT).show();
+
+                }
+                else if(!newPass.getText().toString().equals(confirmPass.getText().toString()))
+                {
+                    Formater.viewDialog(ChangePasswordActivity.this,getString(R.string.users_new_password_confirmation_is_wrong),getString(R.string.users_new_password_confirmation_is_wrong_title));
                 }
                 else {
                     new changePassword(oldPass.getText().toString(),newPass.getText().toString()).execute();
-
-
                 }
             }
         });
@@ -124,11 +124,13 @@ public class ChangePasswordActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute () {
-            if(status.equals("1"))
-            {
-                setAlert();
-            }
+        public void setSuccessPostExecute() {
+            setAlertSuccessClose(getString(R.string.users_password_has_been_changed_succesfully));
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
 
         public void postData() {
@@ -157,28 +159,22 @@ public class ChangePasswordActivity extends RootActivity {
                         if(status.equals("1"))
                         {
                             isSucces=true;
-                            smsg = obj.getString("msg");
                         }
-                        emsg=obj.getString("msg");
-
-
-
+                        else {
+                            msg = getString(R.string.user_enter_the_wrong_password);
+                            msgTitle = getString(R.string.user_enter_the_wrong_password_title);
+                            alertType = DIALOG_TITLE;
+                        }
                     } catch (final JSONException e) {
-                        emsg = e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                        badServerAlert();
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg = "JSON NULL";
+                    badServerAlert();
                 }
-
-
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                emsg = e.getMessage();
+                badInternetAlert();
             }
         }
-
     }
 
     @Override

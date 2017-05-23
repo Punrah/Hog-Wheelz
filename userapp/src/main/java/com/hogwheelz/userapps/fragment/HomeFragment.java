@@ -21,6 +21,7 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.hogFood.FoodActivity;
 import com.hogwheelz.userapps.activity.hogpay.PayActivity;
 import com.hogwheelz.userapps.activity.makeOrder.MakeOrderRideActivity;
@@ -34,6 +35,7 @@ import com.hogwheelz.userapps.persistence.UserGlobal;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -140,8 +142,9 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private class calculateBalance extends AsyncTask<Void, Void, Void> {
+    private class calculateBalance extends MyAsyncTask{
         @Override
+
 
         protected void onPreExecute() {
             super.onPreExecute();
@@ -155,32 +158,58 @@ public class HomeFragment extends Fragment {
 
             String url = AppConfig.getBalanceURL(UserGlobal.getUser(getActivity()).idCustomer);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    balance = jsonObj.getString("saldo");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        balance = jsonObj.getString("saldo");
+                        isSucces = true;
 
-                } catch (final JSONException e) {
-                   //Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                    }
+                } else {
+                    badServerAlert();
                 }
-            } else {
-               // Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
+
+        @Override
+        public void setPreloading() {
+
+        }
+
+        @Override
+        public void setPostLoading() {
+
+        }
+
+        @Override
+        public Context getContext() {
+            return getActivity();
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             UserGlobal.balance=Double.parseDouble(balance);
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "ZA"));
             String moneyString = formatter.format(Double.parseDouble(balance));
             textViewBalance.setText(moneyString);
+        }
 
-
-            // Dismiss the progress dialog
-
+        @Override
+        public void setFailPostExecute() {
+            UserGlobal.balance=0;
+            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "ZA"));
+            String moneyString = formatter.format(Double.parseDouble("0"));
+            textViewBalance.setText(moneyString);
         }
     }
 

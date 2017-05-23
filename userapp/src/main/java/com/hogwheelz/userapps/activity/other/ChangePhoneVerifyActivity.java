@@ -15,8 +15,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.hogwheelz.userapps.R;
-import com.hogwheelz.userapps.activity.main.LoginActivity;
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
+import com.hogwheelz.userapps.activity.main.LoginActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.helper.SessionManager;
 import com.hogwheelz.userapps.helper.UserSQLiteHandler;
@@ -39,8 +39,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VerifyActivity extends AppCompatActivity {
-    private static final String TAG = VerifyActivity.class.getSimpleName();
+public class ChangePhoneVerifyActivity extends AppCompatActivity {
+    private static final String TAG = ChangePhoneVerifyActivity.class.getSimpleName();
     private Button buttonVerify ;
     private Button btnLinkToLogin;
     private EditText inputFullName;
@@ -107,7 +107,7 @@ public class VerifyActivity extends AppCompatActivity {
 
             @Override
             public Context getContext () {
-                return VerifyActivity.this;
+                return ChangePhoneVerifyActivity.this;
             }
 
             @Override
@@ -118,10 +118,16 @@ public class VerifyActivity extends AppCompatActivity {
 
             @Override
             public void setSuccessPostExecute() {
-                    Intent intent = new Intent(
-                            VerifyActivity.this,
-                            LoginActivity.class);
-                    startActivity(intent);
+                // Launch login activity
+
+
+                    User user = new User();
+                    user.idCustomer= UserGlobal.getUser(getApplicationContext()).idCustomer;
+                    user.name=name;
+                    user.username=email;
+                    user.phone=phone;
+                    UserGlobal.setUser(getApplicationContext(),user);
+                    setSuccessAlert();
                     finish();
 
             }
@@ -133,7 +139,8 @@ public class VerifyActivity extends AppCompatActivity {
 
         public void postData() {
             String url="";
-                url = AppConfig.URL_VERIFY;
+
+                url = AppConfig.URL_VERIFY_PROFILE;
 
 
             HttpClient httpclient = new DefaultHttpClient();

@@ -13,8 +13,10 @@ import android.widget.Toast;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
+import com.hogwheelz.userapps.activity.other.ChangePhoneVerifyActivity;
 import com.hogwheelz.userapps.activity.other.VerifyActivity;
 import com.hogwheelz.userapps.app.AppConfig;
+import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.persistence.User;
 import com.hogwheelz.userapps.persistence.UserGlobal;
 
@@ -72,33 +74,24 @@ public class EditProfileActivity extends RootActivity {
             public void onClick(View v) {
                 if(textName.getText().toString().equals(""))
                 {
-                    Toast.makeText(EditProfileActivity.this, "Field name is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.empty_name_pop_up), Toast.LENGTH_SHORT).show();
                 }
                 else if(textEmail.getText().toString().equals(""))
                 {
-                    Toast.makeText(EditProfileActivity.this, "Field email is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.empty_email_pop_up), Toast.LENGTH_SHORT).show();
                 }
                 else if(textPhone.getText().toString().equals(""))
                 {
-                    Toast.makeText(EditProfileActivity.this, "Field phone is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.empty_phone_pop_up), Toast.LENGTH_SHORT).show();
                 }
                 else if(textName.getText().toString().equals(UserGlobal.getUser(getApplicationContext()).name)
                         &&textEmail.getText().toString().equals(UserGlobal.getUser(getApplicationContext()).username)
                         &&textPhone.getText().toString().equals(UserGlobal.getUser(getApplicationContext()).phone))
                 {
-                    AlertDialog.Builder  alert = new AlertDialog.Builder(EditProfileActivity.this);
-                    alert.setTitle("Unable To Process");
-                    alert.setMessage("Nothing was changed in the profile");
-                    alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    });
-                    alert.show();
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.user_changed_nothing), Toast.LENGTH_SHORT).show();
                 }
                 else {
                     new editProfile(textName.getText().toString(),textEmail.getText().toString(),textPhone.getText().toString()).execute();
-
 
                 }
             }
@@ -135,7 +128,7 @@ public class EditProfileActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute () {
+        public void setSuccessPostExecute() {
             if(status.equals("1"))
             {
                 User user = new User();
@@ -144,20 +137,24 @@ public class EditProfileActivity extends RootActivity {
                 user.username=textEmail.getText().toString();
                 user.phone=textPhone.getText().toString();
                 UserGlobal.setUser(getApplicationContext(),user);
-                setAlert();
+                setAlertSuccess(getString(R.string.profile_updated),DIALOG);
             }
             else if(status.equals("2"))
             {
                 Intent intent = new Intent(
                         EditProfileActivity.this,
-                        VerifyActivity.class);
+                        ChangePhoneVerifyActivity.class);
                 intent.putExtra("id_customer",UserGlobal.getUser(getApplicationContext()).idCustomer);
-                intent.putExtra("from","2");
                 intent.putExtra("name", textName.getText().toString());
                 intent.putExtra("email",textEmail.getText().toString());
                 intent.putExtra("phone",textPhone.getText().toString());
                 startActivity(intent);
             }
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 
@@ -201,18 +198,16 @@ public class EditProfileActivity extends RootActivity {
 
 
                     } catch (final JSONException e) {
-                        emsg = e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                        badServerAlert();
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg = "JSON NULL";
+                    badServerAlert();
                 }
 
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg = e.getMessage();
+                badInternetAlert();
             }
         }
 

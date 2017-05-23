@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary">
-            <LinearLayout
+            <RelativeLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -29,6 +29,7 @@
                     android:src="@drawable/back"
                     />
                 <TextView
+                    android:layout_toRightOf="@id/back"
                     android:layout_marginLeft="15dp"
                     android:id="@+id/category"
                     android:layout_width="wrap_content"
@@ -37,7 +38,15 @@
                     android:textColor="@color/white"
                     android:text="Order Details"
                     />
-            </LinearLayout>
+                <ImageView
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/refresh"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/refresh"
+                    />
+            </RelativeLayout>
 
         </android.support.v7.widget.Toolbar>
 

@@ -38,6 +38,15 @@
                     android:layout_height="20dp"
                     android:src="@drawable/ride_white"
                     />
+                <ImageView
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:id="@+id/refresh"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/refresh"
+                    />
             </RelativeLayout>
 
         </android.support.v7.widget.Toolbar>

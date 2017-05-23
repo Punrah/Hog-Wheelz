@@ -31,7 +31,7 @@ public class ListItemActivity extends RootActivity {
     TextView textViewRecapPrice;
 
     TextView textViewRecapQty;
-    ImageView buttonCheckout;
+    LinearLayout buttonCheckout;
     ImageView back;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -48,7 +48,7 @@ public class ListItemActivity extends RootActivity {
         linearLayoutItem = (LinearLayout) findViewById(R.id.list_item);
         textViewRecapPrice=(TextView) findViewById(R.id.price_recap);
         textViewRecapQty=(TextView) findViewById(R.id.order_qty);
-        buttonCheckout = (ImageView) findViewById(R.id.checkout);
+        buttonCheckout = (LinearLayout) findViewById(R.id.checkout);
 
         orderFood = getIntent().getParcelableExtra("order");
         index = getIntent().getIntExtra("index",0);

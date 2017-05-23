@@ -206,6 +206,7 @@ public class MainActivity extends RootActivity {
 
     @Override
     public void setPermissionLocation() {
+        startLocationServices();
 
     }
 
@@ -222,20 +223,7 @@ public class MainActivity extends RootActivity {
 
     }
 
-    private void startLocationServices()
-    {
-        Intent intent = new Intent(this, LocationUpdateService.class);
-        intent.putExtra("id_driver", DriverGlobal.getDriver(getApplicationContext()).idDriver);
-        startService(intent);
-    }
 
-
-    @Override
-    protected void onStop() {
-        stopService(new Intent(this, LocationUpdateService.class));
-        super.onStop();
-
-    }
 
 
 

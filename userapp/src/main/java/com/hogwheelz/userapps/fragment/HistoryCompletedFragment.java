@@ -13,6 +13,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.other.FindDriverActivity;
@@ -30,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -38,10 +40,16 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
     private String TAG = HistoryProgressFragment.class.getSimpleName();
 
 
+    View viewEmptyState;
+    TextView textViewEmptyState;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View myInflate=inflater.inflate(R.layout.fragment_history_completed, container, false);
         listView = (ListView) myInflate.findViewById(R.id.list_history_completed);
+        viewEmptyState =  inflater.inflate(R.layout.empty_state_layout, null);
+        textViewEmptyState = (TextView) viewEmptyState.findViewById(R.id.empty_state);
         swipeRefreshLayout = (SwipeRefreshLayout) myInflate.findViewById(R.id.swipe_refresh_layout);
 
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -75,19 +83,25 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
         protected Void doInBackground(Void... params) {
             String url = AppConfig.getHistoryCompletedURL(UserGlobal.getUser(getActivity().getApplicationContext()).idCustomer);
             HttpHandler sh = new HttpHandler();
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    response = new JSONArray(jsonStr);
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        response = new JSONArray(jsonStr);
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-                    emsg="Json parsing error: " + e.getMessage();
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                    }
+                } else {
+                    badServerAlert();
+
                 }
-            } else {
-                emsg="Couldn't get json from server.";
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -97,7 +111,7 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             if (response.length() > 0) {
 
                 for (int i = 0; i < response.length(); i++) {
@@ -115,13 +129,65 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
 
                         orderList.add(0, order);
                     } catch (JSONException e) {
-                        Log.e(TAG, "JSON Parsing error: " + e.getMessage());
+                        badServerAlert();
                     }
                 }
 
+                listView.removeHeaderView(viewEmptyState);
                 adapter.notifyDataSetChanged();
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        // Start an alpha animation for clicked item
+                        Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                        animation1.setDuration(800);
+                        view.startAnimation(animation1);
+
+                        if (orderList.get(position).status.contentEquals("order")) {
+
+                            Intent i = new Intent(getActivity(), FindDriverActivity.class);
+                            i.putExtra("id_order", (String) orderList.get(position).id_order);
+                            startActivity(i);
+                        } else {
+                            if (orderList.get(position).orderType == 1) {
+                                Intent i = new Intent(getActivity(), ViewOrderRide.class);
+                                i.putExtra("id_order", (String) orderList.get(position).id_order);
+                                startActivity(i);
+                            }
+                            else if (orderList.get(position).orderType == 2) {
+                                Intent i = new Intent(getActivity(), ViewOrderSend.class);
+                                i.putExtra("id_order", (String) orderList.get(position).id_order);
+                                startActivity(i);
+                            }
+                            else if(orderList.get(position).orderType==3) {
+                                {
+                                    Intent i = new Intent(getActivity(), ViewOrderFood.class);
+                                    i.putExtra("id_order", (String) orderList.get(position).id_order);
+                                    startActivity(i);
+                                }
+
+                            }
+
+
+
+                        }
+                    }
+                });
+            }
+            else
+            {
+                textViewEmptyState.setText(getString(R.string.completed_empty_state));
+                listView.removeHeaderView(viewEmptyState);
+                listView.addHeaderView(viewEmptyState);
             }
 
+        }
+
+        @Override
+        public void setFailPostExecute() {
+            textViewEmptyState.setText(getString(R.string.completed_empty_state));
+            listView.removeHeaderView(viewEmptyState);
+            listView.addHeaderView(viewEmptyState);
         }
 
         @Override
@@ -138,44 +204,7 @@ public class HistoryCompletedFragment extends HistoryFragmentUp  implements Swip
         public void setPostLoading() {
             // stopping swipe refresh
             swipeRefreshLayout.setRefreshing(false);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    // Start an alpha animation for clicked item
-                    Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
-                    animation1.setDuration(800);
-                    view.startAnimation(animation1);
 
-                    if (orderList.get(position).status.contentEquals("order")) {
-
-                        Intent i = new Intent(getActivity(), FindDriverActivity.class);
-                        i.putExtra("id_order", (String) orderList.get(position).id_order);
-                        startActivity(i);
-                    } else {
-                        if (orderList.get(position).orderType == 1) {
-                            Intent i = new Intent(getActivity(), ViewOrderRide.class);
-                            i.putExtra("id_order", (String) orderList.get(position).id_order);
-                            startActivity(i);
-                        }
-                        else if (orderList.get(position).orderType == 2) {
-                            Intent i = new Intent(getActivity(), ViewOrderSend.class);
-                            i.putExtra("id_order", (String) orderList.get(position).id_order);
-                            startActivity(i);
-                        }
-                        else if(orderList.get(position).orderType==3) {
-                            {
-                                Intent i = new Intent(getActivity(), ViewOrderFood.class);
-                                i.putExtra("id_order", (String) orderList.get(position).id_order);
-                                startActivity(i);
-                            }
-
-                        }
-
-
-
-                    }
-                }
-            });
 
         }
     }

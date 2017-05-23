@@ -207,6 +207,49 @@
         <item>260,ZM</item>
         <item>263,ZW</item>
     </string-array>
+    <string name="email_or_phone_taken_error_message" >Email or phone number has already been registered</string>
+    <string name="email_taken_error_message" >Email has already been registered</string>
+    <string name="phone_number_taken_error_message" >Phone has already been registered</string>
+    <string name="minimum_characters_error_messages">Password at least 8 characters</string>
+    <string name="must_be_alphanumerics_error_messages">Must be alphanumerics</string>
+    <string name="empty_name_pop_up">Please fill in your name</string>
+    <string name="empty_email_pop_up">Please fill in your email</string>
+    <string name="empty_phone_pop_up">Please fill in your phone number</string>
+    <string name="empty_password_pop_up">Please fill in your password</string>
+    <string name="phone_format_pop_up">Sorry. Phone must be at least 8 numbers and in +6281xx format</string>
+    <string name="email_format_pop_up">Email must be in format: name@email.com</string>
+    
+    <string name="bad_internet_connection_pop_up_title">No Internet Connection</string>
+    <string name="bad_internet_connection_pop_up">Please make sure your device is connected to the internet and try again.</string>
+    <string name="server_error_pop_up_title">Unable to Process</string>
+    <string name="server_error_pop_up">We are unable to process your request at this time. Please try again later.</string>
+<string name="wrong_password_pop_up">The password you have entered is incorrect. Try again?</string>
+    <string name="wrong_password_pop_up_title">Unable to Log In</string>
+    <string name="wrong_email_pop_up">Sorry, this email has not been registered. Try another email?</string>
+    <string name="wrong_email_pop_up_title">Customer Not Found</string>
+
+    <string name="in_progress_empty_state">Once you order a service, you can track your order status here.</string>
+    <string name="completed_empty_state">Once you completed a transaction, it will appear here.</string>
+
+    <string name="change_phone_number_success_title">Success!</string>
+    <string name="change_phone_number_success">Your phone number has been changed successfully.</string>
+    <string name="profile_updated">Your profile has been successfully updated</string>
+
+    <string name="user_changed_nothing">Nothing was changed in the profile</string>
+    <string name="user_havent_enter_their_old_password">Please enter your old password</string>
+    <string name="user_havent_enter_their_new_password">Please enter your new password</string>
+    <string name="user_havent_enter_their_new_password_confirmation">Please confirm your new password</string>
+
+    <string name="users_new_password_confirmation_is_wrong">New password confirmation doesn\'t match</string>
+    <string name="users_new_password_confirmation_is_wrong_title">Change Password Unsuccessful</string>
+
+    <string name="users_new_password_is_not_alphanumerics">New password must be alphanumerics</string>
+    <string name="users_new_password_format_are_wrong">New password must be at least 8 characters.</string>
+    <string name="user_enter_the_wrong_password">Your current password is wrong</string>
+    <string name="user_enter_the_wrong_password_title">Wrong Password</string>
+    <string name="users_password_has_been_changed_succesfully">Your password has been changed successfully.</string>
+
+
 </resources>
 
 

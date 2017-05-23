@@ -17,6 +17,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -78,6 +79,8 @@ public class FindOrderFragment extends Fragment   {
     TextView textViewOrderWeek;
     TextView textViewOrderToday;
 
+    ImageView type;
+
 
 
     public FindOrderFragment() {}
@@ -107,6 +110,19 @@ public class FindOrderFragment extends Fragment   {
         textViewOrderMonth=(TextView) myInflate.findViewById(R.id.order_month);
         textViewOrderWeek=(TextView) myInflate.findViewById(R.id.order_week);
         textViewOrderToday=(TextView) myInflate.findViewById(R.id.order_today);
+
+        type = (ImageView) myInflate.findViewById(R.id.type);
+
+        String typeString=DriverGlobal.getDriver(getActivity().getApplicationContext()).type;
+        if(typeString.contentEquals("bike"))
+        {
+            type.setImageResource(R.drawable.motor_ride_yellow);
+        }
+        else if(typeString.contentEquals("car"))
+        {
+            type.setImageResource(R.drawable.car_ride_yellow);
+        }
+
 
         new getStatusOrder().execute();
         new getTotalOrder().execute();

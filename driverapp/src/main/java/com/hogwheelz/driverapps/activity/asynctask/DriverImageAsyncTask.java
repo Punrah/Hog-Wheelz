@@ -1,11 +1,12 @@
-package com.hogwheelz.userapps.activity.asynctask;
+package com.hogwheelz.driverapps.activity.asynctask;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.widget.ImageView;
 
-import com.hogwheelz.userapps.app.AppConfig;
+
+import com.hogwheelz.driverapps.app.AppConfig;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;

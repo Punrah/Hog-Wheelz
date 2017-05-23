@@ -43,6 +43,7 @@ public abstract class FindOrderDetailActivity extends RootActivity {
     String idOrder;
 
     ImageView back;
+    ImageView refresh;
 
     TextView textViewOrderType;
     TextView textViewPaymentType;
@@ -87,6 +88,7 @@ public abstract class FindOrderDetailActivity extends RootActivity {
         buttonMaps =(TextView) findViewById(R.id.button_maps);
 
         back = (ImageView) findViewById(R.id.back);
+        refresh = (ImageView) findViewById(R.id.refresh);
         back.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
@@ -293,6 +295,7 @@ public abstract class FindOrderDetailActivity extends RootActivity {
 
     public void setAllTextView()
     {
+
         buttonAccept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

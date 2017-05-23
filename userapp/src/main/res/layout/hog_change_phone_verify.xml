@@ -26,7 +26,7 @@
             android:padding="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Please check the verification code we have sent to your phone and enter the code here"/>
+            android:text="Confirm your new phone number with a verification code we've sent to your phone."/>
 
 
 
@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:hint="Enter your code here" />
+                android:hint="Verification code" />
         </android.support.design.widget.TextInputLayout>
 
         <!-- Password Label -->

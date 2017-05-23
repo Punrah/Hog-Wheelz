@@ -60,18 +60,15 @@ public class FindOrderDetailSendActivity extends FindOrderDetailActivity {
 
     private void viewDetail()
     {
+        linearLayoutDetail.removeAllViews();
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_send_detail, linearLayoutDetail, false);
         TextView description = (TextView) convertView.findViewById(R.id.item_description);
         TextView sender_name = (TextView) convertView.findViewById(R.id.sender_name_send);
-        TextView sender_phone = (TextView) convertView.findViewById(R.id.sender_phone_send);
         TextView receiver_name = (TextView) convertView.findViewById(R.id.receiver_name_send);
-        TextView receiver_phone = (TextView) convertView.findViewById(R.id.receiver_phone_send);
         description.setText(String.valueOf(order.description));
         sender_name.setText(String.valueOf(order.senderName));
-        sender_phone.setText(String.valueOf(order.senderPhone));
         receiver_name.setText(String.valueOf(order.receiverName));
-        receiver_phone.setText(String.valueOf(order.receiverPhone));
         callerSender =(LinearLayout) convertView.findViewById(R.id.caller_sender);
         callerReceiver =(LinearLayout) convertView.findViewById(R.id.caller_receiver);
 
@@ -196,6 +193,12 @@ public class FindOrderDetailSendActivity extends FindOrderDetailActivity {
                 i.putExtra("pick_up",order.pickupPosition);
                 i.putExtra("drop_off",order.dropoofPosition);
                 startActivity(i);
+            }
+        });
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
             }
         });
         super.setAllTextView();

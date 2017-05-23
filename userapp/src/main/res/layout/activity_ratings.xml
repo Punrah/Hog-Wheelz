@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textColor="@color/white"
-                    android:text="My Bookings"
+                    android:text="Last Order"
                     />
             </LinearLayout>
 
@@ -102,12 +102,13 @@
         android:layout_height="wrap_content"
         android:gravity="center">
         <TextView
+            android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:text="HOW WAS THE SERVICE?"/>
         <LinearLayout
-            android:padding="10dp"
+            android:padding="5dp"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
@@ -130,12 +131,14 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/star_gray"/>
+
             <ImageView
-                android:layout_margin="5dp"
                 android:id="@+id/star4"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@drawable/star_gray"/>
+                android:layout_margin="5dp"
+                android:src="@drawable/star_gray" />
+
             <ImageView
                 android:layout_margin="5dp"
                 android:id="@+id/star5"
@@ -143,6 +146,7 @@
                 android:layout_height="40dp"
                 android:src="@drawable/star_gray"/>
         </LinearLayout>
+
         <EditText
             android:gravity="top"
             android:id="@+id/message"

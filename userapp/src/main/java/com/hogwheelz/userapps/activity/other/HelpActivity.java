@@ -158,8 +158,13 @@ public class HelpActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
-            setAlert();
+        public void setSuccessPostExecute() {
+            setSuccessAlert();
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 
@@ -198,23 +203,23 @@ public class HelpActivity extends RootActivity {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        msg =e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
                     //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    msg ="JSON NULL";
                 }
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
         }
 
@@ -223,7 +228,10 @@ public class HelpActivity extends RootActivity {
     }
 
 
-    private class callCenter extends AsyncTask<Void, Void, Void> {
+    private class callCenter extends MyAsyncTask {
+
+        boolean isSuccess;
+        String emsg;
         @Override
 
         protected void onPreExecute() {
@@ -238,38 +246,73 @@ public class HelpActivity extends RootActivity {
 
             String url = AppConfig.URL_CALL_CENTER;
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    callCenter = jsonObj.getString("nohp");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        isSuccess=true;
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        callCenter = jsonObj.getString("nohp");
 
-                } catch (final JSONException e) {
-                    //Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                        emsg=e.getMessage();
+                        //Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    emsg="Couldn't get json from server.";
+                    // Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
+
                 }
-            } else {
-                // Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
-            call.setBackgroundResource(R.color.colorAccent);
+        @Override
+        public void setPreloading() {
+
+        }
+
+        @Override
+        public void setPostLoading() {
+
+        }
+
+        @Override
+        public Context getContext() {
+            return HelpActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
+                call.setBackgroundResource(R.color.colorAccent);
+                call.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        setConditionCall();
+
+
+                    }
+                });
+            }
+
+        @Override
+        public void setFailPostExecute() {
+            call.setBackgroundResource(R.color.softgray);
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                            setConditionCall();
-
-
                 }
             });
-
-
-            // Dismiss the progress dialog
-
+        }
         }
     }
-}
+
+
+
+

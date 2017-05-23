@@ -12,9 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hogwheelz.userapps.R;
+import com.hogwheelz.userapps.activity.ViewOrder.ViewOrder;
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
-import com.hogwheelz.userapps.activity.other.HelpActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
@@ -149,7 +149,7 @@ public class VoucherActivity extends RootActivity {
     }
 
 
-    private class calculateBalance extends AsyncTask<Void, Void, Void> {
+    private class calculateBalance extends MyAsyncTask{
         @Override
 
         protected void onPreExecute() {
@@ -164,29 +164,62 @@ public class VoucherActivity extends RootActivity {
 
             String url = AppConfig.getBalanceURL(UserGlobal.getUser(VoucherActivity.this).idCustomer);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    balance = jsonObj.getString("saldo");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        balance = jsonObj.getString("saldo");
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-                    Toast.makeText(VoucherActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(VoucherActivity.this, "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                    }
+                } else {
+                badServerAlert();}
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
 
-            UserGlobal.balance=Double.parseDouble(balance);
-            textViewBalance.setText(Formater.getPrice(balance));
+
 
 
             // Dismiss the progress dialog
+
+        }
+
+        @Override
+        public void setPreloading() {
+
+        }
+
+        @Override
+        public void setPostLoading() {
+
+        }
+
+        @Override
+        public Context getContext() {
+            return VoucherActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
+            UserGlobal.balance=Double.parseDouble(balance);
+            textViewBalance.setText(Formater.getPrice(balance));
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
+            UserGlobal.balance=Double.parseDouble("0");
+            textViewBalance.setText(Formater.getPrice("0"));
 
         }
     }
@@ -207,8 +240,13 @@ public class VoucherActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
-            setAlert();
+        public void setSuccessPostExecute() {
+            setSuccessAlert();
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 
@@ -246,23 +284,23 @@ public class VoucherActivity extends RootActivity {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        msg =e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
                     //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    msg ="JSON NULL";
                 }
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
         }
 

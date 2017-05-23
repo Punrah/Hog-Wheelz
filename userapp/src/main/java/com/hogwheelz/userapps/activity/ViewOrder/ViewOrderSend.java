@@ -5,13 +5,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
@@ -32,6 +30,8 @@ import com.hogwheelz.userapps.persistence.OrderSend;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 
 public class ViewOrderSend extends ViewOrder
@@ -78,6 +78,11 @@ public class ViewOrderSend extends ViewOrder
 
     public void setAllTextView()
     {
+
+        if(!(order.status.contentEquals("Complete")||order.status.contentEquals("Cancel"))) {
+            friendsDatabaseReference = friendsDatabase.getReference("location_driver/" + order.driver.idDriver);
+            addValueEventListener(friendsDatabaseReference);
+        }
         textViewDriverName.setText(order.driver.name);
         imageViewDriver.setTag(order.driver.photo);
         new DriverImageAsyncTask().execute(imageViewDriver);
@@ -169,6 +174,7 @@ public class ViewOrderSend extends ViewOrder
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             textViewPickupNote.setText(order.getPickupNoteString());
             textViewPickupNote.setLayoutParams(params);
+            linearLayoutPickupNote.removeAllViews();
             linearLayoutPickupNote.addView(textViewPickupNote);
         }
 
@@ -179,6 +185,7 @@ public class ViewOrderSend extends ViewOrder
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
             textViewDropoffNote.setText(order.getDropoffNoteString());
             textViewDropoffNote.setLayoutParams(params);
+            linearLayoutDropoffNote.removeAllViews();
             linearLayoutDropoffNote.addView(textViewDropoffNote);
         }
 
@@ -220,6 +227,11 @@ public class ViewOrderSend extends ViewOrder
                 }
             });
         }
+        else if(order.status.contentEquals("Start"))
+        {
+            buttonCancel.setOnClickListener(null);
+            buttonCancel.setImageResource(R.drawable.cancel_gray);
+        }
         else {
             buttonCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -227,12 +239,21 @@ public class ViewOrderSend extends ViewOrder
                     cancelOrder();
                 }
             });
+            buttonCancel.setImageResource(R.drawable.cancel);
         }
 
-        buttonDetail.setOnClickListener(new View.OnClickListener() {
+
+            buttonDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setDetailButton();
+            }
+        });
+
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderSendDetail().execute();
             }
         });
 
@@ -310,53 +331,58 @@ public class ViewOrderSend extends ViewOrder
             HttpHandler sh = new HttpHandler();
             String url = AppConfig.getOrderDetail(idOrder);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        isSucces=true;
 
-                    JSONObject orderJson = new JSONObject(jsonStr);
+                        JSONObject orderJson = new JSONObject(jsonStr);
 
-                    order.id_order=idOrder;
-                    order.driver.idDriver = orderJson.getString("id_driver");
-                    if(!order.driver.idDriver.contentEquals("0")) {
-                        order.driver.name = orderJson.getString("driver_name");
-                        order.driver.plat = orderJson.getString("plat");
-                        order.driver.phone = orderJson.getString("driver_phone");
-                        order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
-                        order.driver.photo = orderJson.getString("foto");
-                        order.driver.rating = orderJson.getInt("rating_driver");
+                        order.id_order=idOrder;
+
+                        order.status = orderJson.getString("status_order");
+                        if(!(order.status.contentEquals("Complete")||order.status.contentEquals("Cancel"))) {
+                            order.driver.idDriver = orderJson.getString("id_driver");
+                            order.driver.name = orderJson.getString("driver_name");
+                            order.driver.plat = orderJson.getString("plat");
+                            order.driver.phone = orderJson.getString("driver_phone");
+                            order.driver.driverLocation = new LatLng(orderJson.getDouble("driver_lat"), orderJson.getDouble("driver_long"));
+                            order.driver.photo = orderJson.getString("foto");
+                            order.driver.rating = orderJson.getInt("rating_driver");
+                        }
+                        order.dropoffAddress = orderJson.getString("destination_address");
+                        order.pickupAddress=orderJson.getString("origin_address");
+                        order.price=orderJson.getInt("price");
+                        order.distance=orderJson.getDouble("distance");
+                        order.pickupNote=orderJson.getString("note_from");
+                        order.dropoffNote=orderJson.getString("note_to");
+                        order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
+                        order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
+                        order.description = orderJson.getString("item_description");
+                        order.senderName = orderJson.getString("sender_name");
+                        order.senderPhone = orderJson.getString("sender_phone");
+                        order.receiverName = orderJson.getString("receiver_name");
+                        order.receiverPhone = orderJson.getString("receiver_phone");
+                        order.vehicle = orderJson.getString("vehicle");
+                        order.payment_type = orderJson.getString("payment_type");
+                        order.orderType=orderJson.getInt("order_type");
+                        order.rating = orderJson.getInt("rating_order");
+
+
+                    } catch (final JSONException e) {
+
+                        badServerAlert();
                     }
-                    order.status = orderJson.getString("status_order");
-                    order.dropoffAddress = orderJson.getString("destination_address");
-                    order.pickupAddress=orderJson.getString("origin_address");
-                    order.price=orderJson.getInt("price");
-                    order.distance=orderJson.getDouble("distance");
-                    order.pickupNote=orderJson.getString("note_from");
-                    order.dropoffNote=orderJson.getString("note_to");
-                    order.pickupPosition=new LatLng(orderJson.getDouble("lat_from"),orderJson.getDouble("long_from"));
-                    order.dropoofPosition=new LatLng(orderJson.getDouble("lat_to"),orderJson.getDouble("long_to"));
-                    order.description = orderJson.getString("item_description");
-                    order.senderName = orderJson.getString("sender_name");
-                    order.senderPhone = orderJson.getString("sender_phone");
-                    order.receiverName = orderJson.getString("receiver_name");
-                    order.receiverPhone = orderJson.getString("receiver_phone");
-                    order.vehicle = orderJson.getString("vehicle");
-                    order.payment_type = orderJson.getString("payment_type");
-                    order.orderType=orderJson.getInt("order_type");
-                    order.rating = orderJson.getInt("rating_order");
+                } else {
+                    badServerAlert();
 
-
-                } catch (final JSONException e) {
-
-                    emsg="Order Detail: " + e.getMessage();
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
                 }
-            } else {
-                emsg="json null";
-                Log.e(TAG, "Json null");
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -367,7 +393,7 @@ public class ViewOrderSend extends ViewOrder
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             pickUpMarker = mMap.addMarker(new MarkerOptions()
                     .position(order.pickupPosition)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_marker)));
@@ -387,6 +413,11 @@ public class ViewOrderSend extends ViewOrder
             }
             setAllTextView();
             adjustCamera();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 

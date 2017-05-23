@@ -16,6 +16,9 @@ public class Driver implements Serializable {
     public String idDriver;
     public LatLng driverLocation;
     public int rating;
+    public String photo;
+    public String photoBinary;
+    public String type;
 
     public Driver()
     {
@@ -26,6 +29,10 @@ public class Driver implements Serializable {
         phone="";
         idDriver="";
         driverLocation = new LatLng(0,0);
+        photo="";
+        photoBinary="";
+        type="";
+
     }
 
 }

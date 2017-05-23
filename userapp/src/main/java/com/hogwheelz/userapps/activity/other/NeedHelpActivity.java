@@ -159,8 +159,13 @@ public class NeedHelpActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
-            setAlert();
+        public void setSuccessPostExecute() {
+            setSuccessAlert();
+
+        }
+
+        @Override
+        public void setFailPostExecute() {
 
         }
 
@@ -199,23 +204,23 @@ public class NeedHelpActivity extends RootActivity {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        msg =e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
                     //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    msg ="JSON NULL";
                 }
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
         }
 
@@ -224,7 +229,7 @@ public class NeedHelpActivity extends RootActivity {
     }
 
 
-    private class callCenter extends AsyncTask<Void, Void, Void> {
+    private class callCenter extends MyAsyncTask {
         @Override
 
         protected void onPreExecute() {
@@ -239,37 +244,59 @@ public class NeedHelpActivity extends RootActivity {
 
             String url = AppConfig.URL_CALL_CENTER;
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    callCenter = jsonObj.getString("nohp");
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        callCenter = jsonObj.getString("nohp");
+                        isSucces=true;
 
-                } catch (final JSONException e) {
-                    //Toast.makeText(getActivity(), "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                        badServerAlert();
+                    }
+                } else {
+                    badServerAlert();
                 }
-            } else {
-                // Toast.makeText(getActivity(), "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
 
+
+        @Override
+        public Context getContext() {
+            return NeedHelpActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             call.setBackgroundResource(R.color.colorAccent);
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                            setConditionCall();
+                    setConditionCall();
 
 
                 }
             });
 
+        }
 
-            // Dismiss the progress dialog
+        @Override
+        public void setFailPostExecute() {
+            call.setBackgroundResource(R.color.softgray);
+            call.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+
+                }
+            });
 
         }
     }

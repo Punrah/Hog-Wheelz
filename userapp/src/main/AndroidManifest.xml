@@ -86,6 +86,7 @@
         <activity android:name=".activity.makeOrder.CancelReasonActivity" />
         <activity android:name=".activity.hogpay.PayActivity" />
         <activity android:name=".activity.hogpay.WebActivity" />
+        <activity android:name=".activity.hogpay.WebActivityNoRoot" />
         <activity android:name=".activity.hogpay.TopUpActivity" />
         <activity android:name=".activity.hogpay.VoucherActivity" />
         <activity android:name=".activity.other.RatingsActivity" />

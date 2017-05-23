@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
@@ -80,6 +81,7 @@ public class MakeOrderRideActivity extends MakeOrder {
     }
 
     private class calculatePrice extends MyAsyncTask {
+
         @Override
 
         protected void onPreExecute() {
@@ -98,22 +100,76 @@ public class MakeOrderRideActivity extends MakeOrder {
             order.vehicle=vehicleState;
             String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng,String.valueOf(order.orderType),order.vehicle);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    order.priceCar= jsonObj.getInt("price_car");
-                    order.priceBike= jsonObj.getInt("price_bike");
-                    order.distance = jsonObj.getDouble("distance");
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        String status=jsonObj.getString("status");
 
-                } catch (final JSONException e) {
-                    emsg="Json parsing error: " + e.getMessage();
+                        order.priceCar = 0;
+                        order.priceBike = 0;
+                        order.distance = 0;
+
+                        if(status.contentEquals("1")) {
+                            order.priceCar = jsonObj.getInt("price_car");
+                            order.priceBike = jsonObj.getInt("price_bike");
+                            order.distance = jsonObj.getDouble("distance");
+                            isSucces = true;
+                        }
+                        else if(status.contentEquals("2"))
+                        {
+                            if(order.vehicle.contentEquals("car"))
+                            {
+
+                                msg="The maximum distance of HOGRIDE by car is 75 km. Please try again";
+                                msgTitle="Distance Above 75 km";
+                                alertType=DIALOG_TITLE;
+
+                            }
+                            else if (order.vehicle.contentEquals("bike"))
+                            {
+                                msg="The maximum distance of HOGRIDE by bike is 25 km. Please try again";
+                                msgTitle="Distance Above 25 km";
+                                alertType=DIALOG_TITLE;
+                            }
+                        }
+                        else if(status.contentEquals("3"))
+                        {
+                            msgTitle="Calculation Error";
+                            msg="You cannot have the same pick-up and drop-off";
+                            alertType=DIALOG_TITLE;
+
+                        }
+                        else if (status.contentEquals("4"))
+                        {
+                            msgTitle="Calculation Error";
+                            msg="Please try in sometime";
+                            alertType=DIALOG_TITLE;
+                        }
+                        else {
+
+                            msgTitle="Unable to Calculate Price";
+                            msg="Sorry, we were unable to calculate price at this time, please try again.";
+                            alertType=DIALOG_TITLE;
+                        }
+
+                    } catch (final JSONException e) {
+                        msgTitle="Unable to Calculate Price";
+                        msg="Sorry, we were unable to calculate price at this time, please try again.";
+                        alertType=DIALOG_TITLE;
+                    }
+                } else {
+                    msgTitle="Unable to Calculate Price";
+                    msg="Sorry, we were unable to calculate price at this time, please try again.";
+                    alertType=DIALOG_TITLE;
+
                 }
-            } else {
-                emsg="Couldn't get json from server.";
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -124,18 +180,12 @@ public class MakeOrderRideActivity extends MakeOrder {
         }
 
         @Override
-        public void setMyPostExecute() {
-            textViewPriceLabel.setText("FARE ");
-            textViewDistanceLabel.setText("DISTANCE ");
+        public void setSuccessPostExecute() {
             setPriceByVehicle();
             textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
             buttonBook.setImageResource(R.drawable.order_active);
 
-            if (order.price > UserGlobal.balance) {
-                radioHogpay.setEnabled(false);
-            } else {
-                radioHogpay.setEnabled(true);
-            }
+
 
 
             // Link to Register Screen
@@ -146,6 +196,24 @@ public class MakeOrderRideActivity extends MakeOrder {
 
                 }
             });
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
+            setPriceByVehicle();
+            textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
+            buttonBook.setImageResource(R.drawable.order_inactive);
+
+
+
+            buttonBook.setOnClickListener(new View.OnClickListener() {
+
+                public void onClick(View view) {
+
+                }
+            });
+
         }
     }
 
@@ -212,24 +280,24 @@ public class MakeOrderRideActivity extends MakeOrder {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        msg =e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
                     //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    msg ="JSON NULL";
                 }
 
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
 
         }
@@ -250,12 +318,17 @@ public class MakeOrderRideActivity extends MakeOrder {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             Intent i = new Intent(MakeOrderRideActivity.this,
                     FindDriverActivity.class);
             i.putExtra("id_order",idOrder);
             startActivity(i);
             finish();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 
@@ -265,13 +338,29 @@ public class MakeOrderRideActivity extends MakeOrder {
         {
             textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceBike)));
             order.price=order.priceBike;
+            if (order.price > UserGlobal.balance) {
+                radioHogpay.setEnabled(false);
+                radioCash.setChecked(true);
+                radioHogpay.setChecked(false);
+
+            } else {
+                radioHogpay.setEnabled(true);
+            }
         }
         else if(vehicleState.equals("car"))
         {
             textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceCar)));
             order.price=order.priceCar;
+            if (order.price > UserGlobal.balance) {
+                radioHogpay.setEnabled(false);
+                radioCash.setChecked(true);
+                radioHogpay.setChecked(false);
+            } else {
+                radioHogpay.setEnabled(true);
+            }
         }
     }
+
 
     private void getMyLocation()
     {
@@ -295,7 +384,8 @@ public class MakeOrderRideActivity extends MakeOrder {
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.red_marker))
             );
 
-            new getDriverLocation().execute();
+            addValueEventListener(friendsDatabaseReference);
+           // new getDriverLocation().execute();
             dropOffMarker.setVisible(false);
             setAwal();
             adjustCamera();

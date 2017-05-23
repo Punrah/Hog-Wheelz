@@ -3,7 +3,6 @@ package com.hogwheelz.userapps.activity.hogFood;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -420,20 +419,18 @@ public class MakeOrderFoodActivity extends RootActivity {
 
     }
 
-    private class calculatePrice extends AsyncTask<Void, Void, Void> {
+    private class calculatePrice extends MyAsyncTask {
+
         @Override
-
-
 
         protected void onPreExecute() {
             super.onPreExecute();
-            // Showing progress dialog
-            textViewDeliveryFee.setText("Please wait");
-            textViewTotalPrice.setText("Please wait");
+
         }
         protected Void doInBackground(Void... arg0) {
 
             HttpHandler sh = new HttpHandler();
+
             String originsLat = order.getPickupLatString();
             String originsLng = order.getPickupLngString();
             String destinationsLat = order.getDropoffLatString();
@@ -441,26 +438,45 @@ public class MakeOrderFoodActivity extends RootActivity {
             order.orderType=3;
             String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng,String.valueOf(order.orderType),order.vehicle);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    order.priceCar= jsonObj.getInt("price_car");
-                    order.priceBike= jsonObj.getInt("price_bike");
-                    order.distance = jsonObj.getDouble("distance");
-                    setPriceByVehicle();
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        String status=jsonObj.getString("status");
+                        if(status.contentEquals("1")) {
+                            order.priceCar = jsonObj.getInt("price_car");
+                            order.priceBike = jsonObj.getInt("price_bike");
+                            order.distance = jsonObj.getDouble("distance");
+                            isSucces = true;
+                        }
+                        else {
+                            msg = jsonObj.getString("msg");
+                        }
 
-                } catch (final JSONException e) {
-                    Toast.makeText(MakeOrderFoodActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (final JSONException e) {
+                       badServerAlert();
+                    }
+                } else {
+                    badServerAlert();
+
                 }
-            } else {
-                Toast.makeText(MakeOrderFoodActivity.this, "Couldn't get json from server.", Toast.LENGTH_SHORT).show();
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
+
+
+        @Override
+        public Context getContext() {
+            return MakeOrderFoodActivity.this;
+        }
+
+        @Override
+        public void setSuccessPostExecute() {
             setRecapPrice();
 
 
@@ -473,12 +489,22 @@ public class MakeOrderFoodActivity extends RootActivity {
 
                 }
             });
+        }
 
-            // Dismiss the progress dialog
+        @Override
+        public void setFailPostExecute() {
+            setRecapPrice();
 
+            buttonOrder.setBackgroundResource(R.color.softgray);
+            buttonOrder.setOnClickListener(new View.OnClickListener() {
+
+                public void onClick(View view) {
+                    Toast.makeText(MakeOrderFoodActivity.this, msg, Toast.LENGTH_SHORT).show();
+
+                }
+            });
         }
     }
-
     public void setPriceByVehicle()
     {
         if(order.vehicle.equals("bike"))
@@ -563,24 +589,21 @@ public class MakeOrderFoodActivity extends RootActivity {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                        badServerAlert();
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    badServerAlert();
                 }
 
 
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                badInternetAlert();
             }
 
         }
@@ -597,12 +620,17 @@ public class MakeOrderFoodActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             Intent i = new Intent(MakeOrderFoodActivity.this,
                     FindDriverActivity.class);
             i.putExtra("id_order",idOrder);
             startActivity(i);
             finish();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 }

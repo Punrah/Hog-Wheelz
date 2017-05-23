@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -11,7 +12,10 @@
         android:layout_height="wrap_content"
         android:paddingTop="56dp"
         android:paddingLeft="24dp"
-        android:paddingRight="24dp">
+        android:paddingRight="24dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <ImageView android:src="@drawable/hog_wheelz"
             android:layout_width="150dp"
@@ -19,54 +23,100 @@
             android:layout_marginBottom="24dp"
             android:layout_gravity="center_horizontal" />
 
-        <!-- Email Label -->
-        <android.support.design.widget.TextInputLayout
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp">
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_margin="5dp"
+                android:src="@drawable/message_gray"
+                android:layout_width="20dp"
+                android:layout_height="20dp" />
             <EditText android:id="@+id/email"
+                android:textSize="18dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
-                android:hint="Email" />
-        </android.support.design.widget.TextInputLayout>
+                android:hint="Email (name@email.com)" />
+        </LinearLayout>
+
+
 
         <!-- Password Label -->
-        <android.support.design.widget.TextInputLayout
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            >
-            <EditText android:id="@+id/password"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_margin="5dp"
+                android:src="@drawable/pass"
+                android:layout_width="20dp"
+                android:layout_height="20dp" />
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/new_password_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:hint="Password"/>
-        </android.support.design.widget.TextInputLayout>
+                android:layout_height="52dp"
+                app:errorEnabled="true"
+                app:hintEnabled="false"
+                app:passwordToggleEnabled="true">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/password"
+                    android:layout_width="match_parent"
+                    android:layout_height="43dp"
+                    android:hint="Password"
+                    android:imeOptions="actionNext"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:textSize="18dp" />
+
+            </android.support.design.widget.TextInputLayout>
+        </LinearLayout>
 
 
         <Button
             android:id="@+id/button_login"
-            android:background="@color/colorAccent"
-            android:layout_width="fill_parent"
+            android:background="@drawable/border_round_yellow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="24dp"
+            android:textSize="18dp"
             android:padding="12dp"
             android:text="Login"
             android:textColor="@color/white"/>
 
-        <Button
-            android:id="@+id/btnLinkToRegisterScreen"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:text="Register"
-            android:textAllCaps="false"
+        <TextView
+            android:layout_gravity="center"
+            android:id="@+id/forgot_password"
+            android:textSize="18dp"
             android:textColor="@color/colorAccent"
-            android:textSize="15dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password"/>
 
+    </LinearLayout>
+    <LinearLayout
+        android:background="@color/softgray"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="10dp">
+        <TextView
+            android:textSize="18dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't have an account? "/>
+        <TextView
+            android:id="@+id/btnLinkToRegisterScreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="REGISTER"
+            android:textColor="@color/colorAccent"
+            android:textSize="18dp" />
     </LinearLayout>
 </RelativeLayout>

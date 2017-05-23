@@ -181,6 +181,8 @@ public class LoginActivity extends AppCompatActivity {
                             driver.username = obj.getString("email");
                             driver.idDriver=obj.getString("id_driver");
                             driver.plat=obj.getString("plat");
+                            driver.photo=obj.getString("foto");
+                            driver.type=obj.getString("driver_type");
                             smsg = obj.getString("msg");
 
 

@@ -3,24 +3,16 @@ package com.hogwheelz.userapps.activity.makeOrder;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.hogwheelz.userapps.R;
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
 import com.hogwheelz.userapps.activity.main.RootActivity;
 import com.hogwheelz.userapps.app.AppConfig;
-import com.hogwheelz.userapps.app.AppController;
-import com.hogwheelz.userapps.app.Formater;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -37,12 +29,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class CancelReasonActivity extends RootActivity {
-    private static final String TAG = CancelReasonActivity.class.getSimpleName();
+public class CancelReasonSearchDriverActivity extends RootActivity {
+    private static final String TAG = CancelReasonSearchDriverActivity.class.getSimpleName();
 
 
     LinearLayout linearLayoutReason;
@@ -69,7 +59,7 @@ public class CancelReasonActivity extends RootActivity {
         back.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-                CancelReasonActivity.super.onBackPressed();
+                CancelReasonSearchDriverActivity.super.onBackPressed();
             }
         });
         butonCancel.setBackgroundResource(R.color.softgray);
@@ -100,7 +90,7 @@ public class CancelReasonActivity extends RootActivity {
 
         @Override
         public Context getContext() {
-            return CancelReasonActivity.this;
+            return CancelReasonSearchDriverActivity.this;
         }
 
         @Override
@@ -227,12 +217,11 @@ public class CancelReasonActivity extends RootActivity {
 
         @Override
         public Context getContext() {
-            return CancelReasonActivity.this;
+            return CancelReasonSearchDriverActivity.this;
         }
 
         @Override
         public void setSuccessPostExecute() {
-
             Intent intent = new Intent();
             setResult(RESULT_OK,intent);
             finish();

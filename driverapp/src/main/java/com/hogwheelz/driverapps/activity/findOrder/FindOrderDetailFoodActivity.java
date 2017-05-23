@@ -61,6 +61,7 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity   {
 
     private void viewDetail()
     {
+        linearLayoutDetail.removeAllViews();
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_food_detail, linearLayoutDetail, false);
         LinearLayout linearLayoutItem = (LinearLayout) convertView.findViewById(R.id.list_item);
@@ -226,6 +227,13 @@ public class FindOrderDetailFoodActivity extends FindOrderDetailActivity   {
                 i.putExtra("pick_up",order.pickupPosition);
                 i.putExtra("drop_off",order.dropoofPosition);
                 startActivity(i);
+            }
+        });
+
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
             }
         });
         super.setAllTextView();

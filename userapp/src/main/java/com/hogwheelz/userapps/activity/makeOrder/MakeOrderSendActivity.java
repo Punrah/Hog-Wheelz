@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
@@ -18,9 +19,12 @@ import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Formater;
 import com.hogwheelz.userapps.helper.HttpHandler;
 import com.hogwheelz.userapps.persistence.OrderSend;
+import com.hogwheelz.userapps.persistence.UserGlobal;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 /**
  * Created by Startup on 2/8/17.
@@ -77,26 +81,80 @@ public class MakeOrderSendActivity extends MakeOrder {
             String originsLng = order.getPickupLngString();
             String destinationsLat = order.getDropoffLatString();
             String destinationsLng = order.getDropoffLngString();
-            order.orderType=1;
+            order.orderType=2;
             order.vehicle=vehicleState;
             String url = AppConfig.getPriceURL(originsLat + "," + originsLng, destinationsLat + "," + destinationsLng,String.valueOf(order.orderType),order.vehicle);
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-                    order.priceBike= jsonObj.getInt("price_bike");
-                    order.priceCar= jsonObj.getInt("price_car");
-                    order.distance = jsonObj.getDouble("distance");
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
+                        String status=jsonObj.getString("status");
 
-                } catch (final JSONException e) {
-                    emsg= "Json parsing error: " + e.getMessage();
+                        order.priceCar = 0;
+                        order.priceBike = 0;
+                        order.distance = 0;
+
+                        if(status.contentEquals("1")) {
+                            order.priceCar = jsonObj.getInt("price_car");
+                            order.priceBike = jsonObj.getInt("price_bike");
+                            order.distance = jsonObj.getDouble("distance");
+                            isSucces = true;
+                        }
+                        else if(status.contentEquals("2"))
+                        {
+                            if(order.vehicle.contentEquals("car"))
+                            {
+
+                                msg="The maximum distance of HOGRIDE by car is 75 km. Please try again";
+                                msgTitle="Distance Above 75 km";
+                                alertType=DIALOG_TITLE;
+
+                            }
+                            else if (order.vehicle.contentEquals("bike"))
+                            {
+                                msg="The maximum distance of HOGRIDE by bike is 25 km. Please try again";
+                                msgTitle="Distance Above 25 km";
+                                alertType=DIALOG_TITLE;
+                            }
+                        }
+                        else if(status.contentEquals("3"))
+                        {
+                            msgTitle="Calculation Error";
+                            msg="You cannot have the same pick-up and drop-off";
+                            alertType=DIALOG_TITLE;
+
+                        }
+                        else if (status.contentEquals("4"))
+                        {
+                            msgTitle="Calculation Error";
+                            msg="Please try in sometime";
+                            alertType=DIALOG_TITLE;
+                        }
+                        else {
+
+                            msgTitle="Unable to Calculate Price";
+                            msg="Sorry, we were unable to calculate price at this time, please try again.";
+                            alertType=DIALOG_TITLE;
+                        }
+
+                    } catch (final JSONException e) {
+                        msgTitle="Unable to Calculate Price";
+                        msg="Sorry, we were unable to calculate price at this time, please try again.";
+                        alertType=DIALOG_TITLE;
+                    }
+                } else {
+                    msgTitle="Unable to Calculate Price";
+                    msg="Sorry, we were unable to calculate price at this time, please try again.";
+                    alertType=DIALOG_TITLE;
+
                 }
-            } else {
-                emsg="Couldn't get json from server.";
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -107,15 +165,19 @@ public class MakeOrderSendActivity extends MakeOrder {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             setView();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+            setFailView(msg);
+
         }
     }
 
     private void setView()
     {
-        textViewPriceLabel.setText("FARE ");
-        textViewDistanceLabel.setText("DISTANCE ");
         setPriceByVehicle();
         textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
         buttonBook.setImageResource(R.drawable.order_active);
@@ -141,6 +203,21 @@ public class MakeOrderSendActivity extends MakeOrder {
         });
     }
 
+    private void setFailView(final String emsg)
+    {
+        setPriceByVehicle();
+        textViewDistance.setText(Formater.getDistance(order.getDistanceString()));
+        buttonBook.setImageResource(R.drawable.order_inactive);
+
+
+        // Link to Register Screen
+        buttonBook.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+            }
+        });
+    }
+
     private void addOrderDetail()
     {
         Intent i = new Intent(MakeOrderSendActivity.this,
@@ -158,11 +235,27 @@ public class MakeOrderSendActivity extends MakeOrder {
         {
             textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceBike)));
             order.price=order.priceBike;
+            if (order.price > UserGlobal.balance) {
+                radioHogpay.setEnabled(false);
+                radioCash.setChecked(true);
+                radioHogpay.setChecked(false);
+
+            } else {
+                radioHogpay.setEnabled(true);
+            }
         }
         else if(vehicleState.equals("car"))
         {
             textViewPrice.setText(Formater.getPrice(String.valueOf(order.priceCar)));
             order.price=order.priceCar;
+            if (order.price > UserGlobal.balance) {
+                radioHogpay.setEnabled(false);
+                radioCash.setChecked(true);
+                radioHogpay.setChecked(false);
+
+            } else {
+                radioHogpay.setEnabled(true);
+            }
         }
     }
 
@@ -188,7 +281,8 @@ public class MakeOrderSendActivity extends MakeOrder {
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.red_marker))
             );
 
-            new getDriverLocation().execute();
+            addValueEventListener(friendsDatabaseReference);
+            //new getDriverLocation().execute();
             dropOffMarker.setVisible(false);
             setAwal();
             adjustCamera();

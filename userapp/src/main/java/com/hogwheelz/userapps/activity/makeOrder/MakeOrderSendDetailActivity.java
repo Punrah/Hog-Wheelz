@@ -242,24 +242,24 @@ public class MakeOrderSendDetailActivity extends AppCompatActivity {
                         }
                         else
                         {
-                            emsg = obj.getString("msg");
+                            msg = obj.getString("msg");
                             //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
 
                         }
 
                     } catch (final JSONException e) {
-                        emsg=e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        msg =e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
                     //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg="JSON NULL";
+                    msg ="JSON NULL";
                 }
 
 
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
 
         }
@@ -276,12 +276,17 @@ public class MakeOrderSendDetailActivity extends AppCompatActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             Intent i = new Intent(MakeOrderSendDetailActivity.this,
                     FindDriverActivity.class);
             i.putExtra("id_order",idOrder);
             startActivity(i);
             finish();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 

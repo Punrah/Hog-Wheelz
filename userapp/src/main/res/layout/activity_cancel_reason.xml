@@ -53,7 +53,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="18sp"
-        android:text="May WE KNOW WHY YOU'RE CANCELING THIS ORDER?"></TextView>
+        android:text="MAY WE KNOW WHY YOU'RE CANCELING THIS ORDER?"></TextView>
     <ScrollView
         android:layout_above="@+id/cancel_button"
         android:layout_below="@id/question"

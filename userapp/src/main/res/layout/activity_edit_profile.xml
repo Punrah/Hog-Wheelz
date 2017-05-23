@@ -77,7 +77,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:hint="name"
+                    android:inputType="text"
+                    android:hint="Name"
                     android:textSize="16sp" />
                 <LinearLayout
                     android:layout_marginLeft="10dp"
@@ -108,12 +109,13 @@
                 android:layout_height="wrap_content">
 
                 <EditText
+                    android:inputType="textEmailAddress"
                     android:background="@android:color/transparent"
                     android:id="@+id/email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
-                    android:hint="email"
+                    android:hint="Email (name@email.com)"
                     android:textSize="16sp" />
                 <LinearLayout
                     android:layout_marginLeft="10dp"
@@ -138,17 +140,17 @@
 
             </LinearLayout>
             <LinearLayout
+                android:padding="10dp"
                 android:layout_weight="5"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content">
-
                 <EditText
+                    android:inputType="number"
                     android:background="@android:color/transparent"
                     android:id="@+id/phone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:hint="phone"
+                    android:hint="Phone (0812xxxxxxx)"
                     android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
@@ -173,7 +175,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:elevation="18dp"
-            android:text="CONFIRM"
+            android:text="SAVE"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/white" />
     </FrameLayout>

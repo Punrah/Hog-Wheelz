@@ -11,11 +11,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hogwheelz.userapps.activity.asynctask.MyAsyncTask;
+import com.hogwheelz.userapps.activity.hogpay.WebActivity;
+import com.hogwheelz.userapps.activity.hogpay.WebActivityNoRoot;
 import com.hogwheelz.userapps.activity.other.VerifyActivity;
 import com.hogwheelz.userapps.app.AppConfig;
 import com.hogwheelz.userapps.app.Formater;
@@ -45,7 +50,7 @@ import com.hogwheelz.userapps.persistence.UserGlobal;
 public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = RegisterActivity.class.getSimpleName();
     private Button btnRegister;
-    private Button btnLinkToLogin;
+    private TextView btnLinkToLogin;
     private EditText inputFullName;
     private EditText inputEmail;
     private EditText inputPhone;
@@ -53,6 +58,11 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText inputConfirmPassword;
     private SessionManager session;
     private UserSQLiteHandler db;
+
+    TextView termOfService;
+    TextView privacyPolicy;
+
+    private TextView countryCode;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +75,14 @@ public class RegisterActivity extends AppCompatActivity {
         inputPassword = (EditText) findViewById(R.id.password);
         inputConfirmPassword = (EditText) findViewById(R.id.confirm_password);
         btnRegister = (Button) findViewById(R.id.btnRegister);
-        btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
+        btnLinkToLogin = (TextView) findViewById(R.id.btnLinkToLoginScreen);
+        countryCode = (TextView) findViewById(R.id.country_code);
+        countryCode.setText("+"+GetCountryZipCode().toString()+" ");
+
+        termOfService= (TextView) findViewById(R.id.term_of_service);
+        privacyPolicy = (TextView) findViewById(R.id.privacy_policy);
+
+
 
 
 
@@ -92,16 +109,45 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String name = inputFullName.getText().toString().trim();
                 String email = inputEmail.getText().toString().trim();
-                String phone = Formater.phoneNumber(inputPhone.getText().toString().trim(),GetCountryZipCode());
+                String phone = inputPhone.getText().toString().trim();
+                String formatedPhone = Formater.phoneNumber(inputPhone.getText().toString().trim(),GetCountryZipCode());
                 String password = inputPassword.getText().toString().trim();
-                String confirmPassword = inputConfirmPassword.getText().toString().trim();
 
-                if (!name.isEmpty() && !email.isEmpty() && !phone.isEmpty() && !confirmPassword.isEmpty() && !password.isEmpty()) {
-                    new registerUser(name, email,phone, password,confirmPassword).execute();
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            "Please enter your details!", Toast.LENGTH_LONG)
-                            .show();
+                if(name.isEmpty())
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.empty_name_pop_up));
+                }
+                else if(email.isEmpty())
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.empty_email_pop_up));
+                }
+                else if(!Formater.isValidEmailAddress(email))
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.email_format_pop_up));
+                }
+                else if(phone.isEmpty())
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.empty_phone_pop_up));
+                }
+                else if(phone.length()<8)
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.phone_format_pop_up));
+                }
+                else if(password.isEmpty())
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.empty_password_pop_up));
+                }
+                else if(password.length()<8)
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.minimum_characters_error_messages));
+                }
+                else if(!password.matches("[A-Za-z0-9]+"))
+                {
+                    Formater.viewDialog(RegisterActivity.this,getString(R.string.must_be_alphanumerics_error_messages));
+                }
+                else
+                {
+                new registerUser(name, email,formatedPhone, password).execute();
                 }
             }
         });
@@ -114,6 +160,33 @@ public class RegisterActivity extends AppCompatActivity {
                         LoginActivity.class);
                 startActivity(i);
                 finish();
+            }
+        });
+
+        privacyPolicy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                privacyPolicy.startAnimation(animation1);
+                Intent i = new Intent(RegisterActivity.this,WebActivityNoRoot.class);
+                i.putExtra("title", "Privacy Policy");
+                i.putExtra("action","privacy_policy");
+                startActivity(i);
+            }
+        });
+        termOfService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start an alpha animation for clicked item
+                Animation animation1 = new AlphaAnimation(0.3f, 5.0f);
+                animation1.setDuration(800);
+                termOfService.startAnimation(animation1);
+                Intent i = new Intent(RegisterActivity.this,WebActivityNoRoot.class);
+                i.putExtra("title", "Term of Service");
+                i.putExtra("action","term_of_service");
+                startActivity(i);
             }
         });
 
@@ -131,12 +204,11 @@ public class RegisterActivity extends AppCompatActivity {
         String idCustomer;
 
         public registerUser(String name,  String email,  String phone,
-                             String password,  String confirmPassword) {
+                             String password) {
             this.name = name;
             this.email = email;
             this.phone = phone;
             this.password = password;
-            this.confirmPassword = confirmPassword;
         }
 
 
@@ -152,18 +224,22 @@ public class RegisterActivity extends AppCompatActivity {
             }
 
             @Override
-            public void setMyPostExecute () {
+            public void setSuccessPostExecute() {
                 // Launch login activity
                 Intent intent = new Intent(
                         RegisterActivity.this,
                         VerifyActivity.class);
                 intent.putExtra("id_customer",idCustomer);
-                intent.putExtra("from","1");
                 intent.putExtra("name", UserGlobal.getUser(getApplicationContext()).name);
                 intent.putExtra("email",UserGlobal.getUser(getApplicationContext()).username);
                 intent.putExtra("phone",UserGlobal.getUser(getApplicationContext()).phone);
                 startActivity(intent);
             }
+
+        @Override
+        public void setFailPostExecute() {
+
+        }
 
         public void postData() {
             String url = AppConfig.URL_REGISTER;
@@ -177,7 +253,7 @@ public class RegisterActivity extends AppCompatActivity {
                 nameValuePairs.add(new BasicNameValuePair("email", email));
                 nameValuePairs.add(new BasicNameValuePair("phone", phone));
                 nameValuePairs.add(new BasicNameValuePair("pass1", password));
-                nameValuePairs.add(new BasicNameValuePair("pass2", confirmPassword));
+                nameValuePairs.add(new BasicNameValuePair("pass2", password));
 
 
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -193,27 +269,47 @@ public class RegisterActivity extends AppCompatActivity {
                         status = obj.getString("status");
                         if (status.contentEquals("1")) {
                             isSucces = true;
-                            smsg = obj.getString("msg");
                             idCustomer = obj.getString("id_customer");
-                        } else {
-                            emsg = obj.getString("msg");
-                            //Toast.makeText(FindOrderDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        }
+                        else if(status.contentEquals("2"))
+                        {
+                            badServerAlert();
+                        }
+                        else if(status.contentEquals("3"))
+                        {
+                            msgTitle="";
+                            msg=getString(R.string.phone_number_taken_error_message);
+                            alertType=DIALOG;
 
+                        }
+                        else if(status.contentEquals("4"))
+                        {
+                            msgTitle="";
+                            msg=getString(R.string.email_taken_error_message);
+                            alertType=DIALOG;
+                        }
+                        else {
+                            msgTitle="";
+                            msg=obj.getString("msg");
+                            alertType=DIALOG;
                         }
 
                     } catch (final JSONException e) {
-                        emsg = e.getMessage();//Toast.makeText(FindOrderDetailActivity.this, "Json parsing error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                        msgTitle="";
+                        msg=e.getMessage();
+                        alertType=DIALOG;
                     }
                 } else {
-                    //Toast.makeText(FindOrderDetailActivity.this, "Couldn't get json from server", Toast.LENGTH_SHORT).show();
-                    emsg = "JSON NULL";
+
+                    badServerAlert();
                 }
 
 
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                emsg = e.getMessage();
+
+                badInternetAlert();
+
+
             }
         }
 

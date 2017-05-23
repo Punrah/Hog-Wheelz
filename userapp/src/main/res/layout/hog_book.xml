@@ -13,8 +13,8 @@
         android:paddingLeft="24dp"
         android:paddingRight="24dp">
 
-        <ImageView android:src="@drawable/logo"
-            android:layout_width="100dp"
+        <ImageView android:src="@drawable/hog_wheelz"
+            android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_marginBottom="24dp"
             android:layout_gravity="center_horizontal" />
@@ -31,6 +31,22 @@
         </RelativeLayout>
 
         <TextView
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:text="PLEASE WAIT..."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"/>
+        <TextView
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:text="SEARCHING DRIVER FOR YOU"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"/>
+
+        <TextView
             android:id="@+id/id_order"
             android:layout_width="match_parent"
             android:layout_height="100dp"
@@ -39,10 +55,13 @@
     </android.support.v7.widget.LinearLayoutCompat>
 
     <android.support.v7.widget.AppCompatButton
+                        android:layout_margin="20dp"
+                        android:background="@drawable/border_round_red"
                         android:id="@+id/button_cancel"
                         android:layout_width="match_parent"
-                        android:layout_height="100dp"
+                        android:layout_height="50dp"
                         android:layout_gravity="bottom"
+                        android:textColor="@color/white"
                         android:text="CANCEL"
                         android:layout_alignParentBottom="true"
                         android:layout_centerHorizontal="true" />

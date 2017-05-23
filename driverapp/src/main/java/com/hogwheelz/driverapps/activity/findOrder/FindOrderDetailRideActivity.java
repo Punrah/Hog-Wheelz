@@ -160,6 +160,12 @@ OrderRide order;
                 startActivity(i);
             }
         });
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
+            }
+        });
         super.setAllTextView();
     }
 

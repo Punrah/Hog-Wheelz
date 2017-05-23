@@ -114,15 +114,15 @@ public class ListRestaurantActivity extends RootActivity {
                     isSucces=true;
 
                 } catch (final JSONException e) {
-                    emsg="Json parsing error: " + e.getMessage();
+                    msg ="Json parsing error: " + e.getMessage();
                 }
             } else {
-                emsg="Couldn't get json from server.";
+                msg ="Couldn't get json from server.";
 
             }
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                emsg=e.getMessage();
+                msg =e.getMessage();
             }
             return null;
         }
@@ -135,7 +135,7 @@ public class ListRestaurantActivity extends RootActivity {
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             if (data.length() > 0) {
 
                 for (int i = 0; i < data.length(); i++) {
@@ -188,6 +188,11 @@ public class ListRestaurantActivity extends RootActivity {
                     }
                 }
             }
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 

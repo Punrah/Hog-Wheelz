@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -26,6 +27,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.hogwheelz.driverapps.Utils.Const;
 import com.hogwheelz.driverapps.Utils.LocationVo;
+import com.hogwheelz.driverapps.activity.main.RootActivity;
 import com.hogwheelz.driverapps.app.AppConfig;
 import com.hogwheelz.driverapps.app.AppController;
 
@@ -33,6 +35,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.android.volley.Request.Method;
+import com.hogwheelz.driverapps.persistence.DriverGlobal;
+
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,8 +47,9 @@ import java.util.Map;
  * Created by Grishma on 16/5/16.
  */
 public class LocationUpdateService extends Service implements
-          GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     protected static final String TAG = "LocationUpdateService";
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     private String idDriver;
     /**
@@ -57,7 +62,7 @@ public class LocationUpdateService extends Service implements
      * than this value.
      */
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-              UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     // Keys for storing activity state in the Bundle.
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
@@ -90,7 +95,6 @@ public class LocationUpdateService extends Service implements
     private ArrayList<LocationVo> mLocationData;
 
 
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -110,7 +114,7 @@ public class LocationUpdateService extends Service implements
         // Within {@code onPause()}, we pause location updates, but leave the
         // connection to GoogleApiClient intact.  Here, we resume receiving
         // location updates if the user has requested them.
-        idDriver=intent.getStringExtra("id_driver");
+        idDriver = DriverGlobal.getDriver(getApplicationContext()).idDriver;
         Log.d("LOC", "Service init...");
         isEnded = false;
         mRequestingLocationUpdates = false;
@@ -157,10 +161,10 @@ public class LocationUpdateService extends Service implements
     protected synchronized void buildGoogleApiClient() {
         Log.i(TAG, "Building GoogleApiClient===");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                  .addConnectionCallbacks(this)
-                  .addOnConnectionFailedListener(this)
-                  .addApi(LocationServices.API)
-                  .build();
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
 
         createLocationRequest();
     }
@@ -182,12 +186,12 @@ public class LocationUpdateService extends Service implements
     private void updateUI() {
         setLocationData();
         Log.d(TAG, "Latitude:==" + mCurrentLocation.getLatitude() + "\n Longitude:==" + mCurrentLocation.getLongitude
-                  ());
-        String lat=Double.toString(mCurrentLocation.getLatitude());
-        String lng=Double.toString(mCurrentLocation.getLongitude());
+                ());
+        String lat = Double.toString(mCurrentLocation.getLatitude());
+        String lng = Double.toString(mCurrentLocation.getLongitude());
 
 
-        updateLoc(idDriver,lat,lng);
+        updateLoc(idDriver, lat, lng);
     }
 
 
@@ -227,22 +231,31 @@ public class LocationUpdateService extends Service implements
     protected void startLocationUpdates() {
         if (!mRequestingLocationUpdates) {
             mRequestingLocationUpdates = true;
-
             getMyLocation();
+
         }
     }
 
 
+    private void getMyLocation() {
 
-    private void getMyLocation()
-    {
-        // The final argument to {@code requestLocationUpdates()} is a LocationListener
-        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                        mLocationRequest, this);
+
+            }
+        } else {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                    mLocationRequest, this);
+        }
+
         Log.i(TAG, " startLocationUpdates===");
         isEnded = true;
     }
+
+
 
     /**
      * Removes location updates from the FusedLocationApi.

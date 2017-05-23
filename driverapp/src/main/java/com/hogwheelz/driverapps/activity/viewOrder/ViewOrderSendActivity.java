@@ -61,13 +61,12 @@ public class ViewOrderSendActivity extends ViewOrderActivity  {
 
     private void viewDetail()
     {
+        linearLayoutDetail.removeAllViews();
         LayoutInflater inflater = getLayoutInflater();
         convertView = (LinearLayout) inflater.inflate(R.layout.view_order_send_detail, linearLayoutDetail, false);
         TextView description = (TextView) convertView.findViewById(R.id.item_description);
         TextView sender_name = (TextView) convertView.findViewById(R.id.sender_name_send);
-        TextView sender_phone = (TextView) convertView.findViewById(R.id.sender_phone_send);
         TextView receiver_name = (TextView) convertView.findViewById(R.id.receiver_name_send);
-        TextView receiver_phone = (TextView) convertView.findViewById(R.id.receiver_phone_send);
         TextView sender_call = (TextView) convertView.findViewById(R.id.sender_call);
         TextView sender_text = (TextView) convertView.findViewById(R.id.sender_text);
         TextView receiver_call= (TextView) convertView.findViewById(R.id.receiver_call);
@@ -86,9 +85,7 @@ public class ViewOrderSendActivity extends ViewOrderActivity  {
         }
         description.setText(String.valueOf(order.description));
         sender_name.setText(String.valueOf(order.senderName));
-        sender_phone.setText(String.valueOf(order.senderPhone));
         receiver_name.setText(String.valueOf(order.receiverName));
-        receiver_phone.setText(String.valueOf(order.receiverPhone));
         sender_call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -781,7 +778,9 @@ public class ViewOrderSendActivity extends ViewOrderActivity  {
                     Toast.makeText(ViewOrderSendActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
         else if (order.status.contentEquals("Cancel"))
         {
@@ -799,8 +798,16 @@ public class ViewOrderSendActivity extends ViewOrderActivity  {
                     Toast.makeText(ViewOrderSendActivity.this, "need help", Toast.LENGTH_SHORT).show();
                 }
             });
-            ((ViewManager)buttonCancel.getParent()).removeView(buttonCancel);
+            if(buttonCancel.getParent()!=null) {
+                ((ViewManager) buttonCancel.getParent()).removeView(buttonCancel);
+            }
         }
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getOrderDetail().execute();
+            }
+        });
 
     }
 

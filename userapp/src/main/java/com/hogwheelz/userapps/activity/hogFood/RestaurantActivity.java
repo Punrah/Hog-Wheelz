@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.List;
 
 public class RestaurantActivity extends RootActivity {
@@ -45,7 +46,7 @@ public class RestaurantActivity extends RootActivity {
     Restaurant restaurant;
     TextView textViewRecapPrice;
     TextView textViewRecapQty;
-    ImageView buttonCheckout;
+    LinearLayout buttonCheckout;
     ImageView back;
 
     String idRestaurant;
@@ -66,7 +67,7 @@ public class RestaurantActivity extends RootActivity {
         textViewRetaurantDetail=(ImageView) findViewById(R.id.button_restaurant_detail);
         textViewRecapPrice=(TextView) findViewById(R.id.price_recap);
         textViewRecapQty=(TextView) findViewById(R.id.order_qty);
-        buttonCheckout= (ImageView) findViewById(R.id.checkout);
+        buttonCheckout= (LinearLayout) findViewById(R.id.checkout);
         back =(ImageView) findViewById(R.id.back);
 
         back.setOnClickListener(new View.OnClickListener() {
@@ -78,7 +79,7 @@ public class RestaurantActivity extends RootActivity {
 
         idRestaurant=getIntent().getStringExtra("id_restaurant");
         new fetchRestaurant().execute();
-orderFood = new OrderFood();
+        orderFood = new OrderFood();
 
 
 
@@ -112,84 +113,88 @@ orderFood = new OrderFood();
 
             restaurant = new Restaurant();
 
-            String jsonStr = sh.makeServiceCall(url);
-            if (jsonStr != null) {
-                try {
-                    isSucces=true;
+            String jsonStr = null;
+            try {
+                jsonStr = sh.makeServiceCall(url);
+                if (jsonStr != null) {
+                    try {
+                        isSucces=true;
 
-                    JSONObject restaurantJson = new JSONObject(jsonStr);
+                        JSONObject restaurantJson = new JSONObject(jsonStr);
 
-                    restaurant.idRestaurant= restaurantJson.getString("id_restaurant");
-                    restaurant.name =  restaurantJson.getString("name");
-                    restaurant.address =  restaurantJson.getString("address");
-                    restaurant.location=new LatLng( restaurantJson.getDouble("latitude"), restaurantJson.getDouble("longitude"));
-                    restaurant.photo= restaurantJson.getString("photo");
-                    restaurant.openHour = restaurantJson.getString("open_hours");
+                        restaurant.idRestaurant= restaurantJson.getString("id_restaurant");
+                        restaurant.name =  restaurantJson.getString("name");
+                        restaurant.address =  restaurantJson.getString("address");
+                        restaurant.location=new LatLng( restaurantJson.getDouble("latitude"), restaurantJson.getDouble("longitude"));
+                        restaurant.photo= restaurantJson.getString("photo");
+                        restaurant.openHour = restaurantJson.getString("open_hours");
 
-                    JSONArray openHourArray = restaurantJson.getJSONArray("hours_detail");
-                    if (openHourArray.length() > 0) {
+                        JSONArray openHourArray = restaurantJson.getJSONArray("hours_detail");
+                        if (openHourArray.length() > 0) {
 
-                        for (int j = 0; j < openHourArray.length(); j++) {
-                            try {
+                            for (int j = 0; j < openHourArray.length(); j++) {
+                                try {
 
-                                // Getting JSON Array node
-                                restaurant.openHourComplete.add(j,openHourArray.getString(j));
-                            } catch (JSONException e) {
-                                Log.e(TAG, "JSON Parsing error: " + e.getMessage());
+                                    // Getting JSON Array node
+                                    restaurant.openHourComplete.add(j,openHourArray.getString(j));
+                                } catch (JSONException e) {
+                                    badServerAlert();
+                                }
                             }
                         }
-                    }
 
-                    JSONArray menuArray = restaurantJson.getJSONArray("menu");
-                    if (menuArray.length() > 0) {
+                        JSONArray menuArray = restaurantJson.getJSONArray("menu");
+                        if (menuArray.length() > 0) {
 
-                        for (int i = 0; i < menuArray.length(); i++) {
-                            try {
+                            for (int i = 0; i < menuArray.length(); i++) {
+                                try {
 
-                                // Getting JSON Array node
-                                JSONObject menuJson = menuArray.getJSONObject(i);
+                                    // Getting JSON Array node
+                                    JSONObject menuJson = menuArray.getJSONObject(i);
 
-                                Menu menu = new Menu();
-                                menu.idMenu = menuJson.getString("id_menu");
-                                menu.name = menuJson.getString("menu");
-                                JSONArray itemArray = menuJson.getJSONArray("item");
-                                if (itemArray.length() > 0) {
+                                    Menu menu = new Menu();
+                                    menu.idMenu = menuJson.getString("id_menu");
+                                    menu.name = menuJson.getString("menu");
+                                    JSONArray itemArray = menuJson.getJSONArray("item");
+                                    if (itemArray.length() > 0) {
 
-                                    for (int j = 0; j < itemArray.length(); j++) {
-                                        try {
+                                        for (int j = 0; j < itemArray.length(); j++) {
+                                            try {
 
-                                            // Getting JSON Array node
-                                            JSONObject itemJson = itemArray.getJSONObject(j);
+                                                // Getting JSON Array node
+                                                JSONObject itemJson = itemArray.getJSONObject(j);
 
-                                            Item item = new Item();
-                                            item.idItem = itemJson.getString("id_item");
-                                            item.name = itemJson.getString("item_name");
-                                            item.price = itemJson.getInt("price");
-                                            item.photo = itemJson.getString("photo_item");
-                                            item.description = itemJson.getString("description");
-                                            menu.item.add(j,item);
-                                        } catch (JSONException e) {
-                                            Log.e(TAG, "JSON Parsing error: " + e.getMessage());
+                                                Item item = new Item();
+                                                item.idItem = itemJson.getString("id_item");
+                                                item.name = itemJson.getString("item_name");
+                                                item.price = itemJson.getInt("price");
+                                                item.photo = itemJson.getString("photo_item");
+                                                item.description = itemJson.getString("description");
+                                                menu.item.add(j,item);
+                                            } catch (JSONException e) {
+                                                badServerAlert();
+                                            }
                                         }
                                     }
+                                    restaurant.menu.add(i,menu);
+                                } catch (JSONException e) {
+                                    badServerAlert();
                                 }
-                                restaurant.menu.add(i,menu);
-                            } catch (JSONException e) {
-                                Log.e(TAG, "JSON Parsing error: " + e.getMessage());
                             }
                         }
+
+                    } catch (final JSONException e) {
+
+                        badServerAlert();
                     }
+                } else {
+                    badServerAlert();
 
-                } catch (final JSONException e) {
-
-                    emsg="Order Detail: " + e.getMessage();
-                    Log.e(TAG, "Order Detail: " + e.getMessage());
                 }
-            } else {
-                emsg = "Json Null";
-                Log.e(TAG, "Json null");
-
+            } catch (IOException e) {
+                badInternetAlert();
             }
+
             return null;
         }
 
@@ -200,9 +205,14 @@ orderFood = new OrderFood();
         }
 
         @Override
-        public void setMyPostExecute() {
+        public void setSuccessPostExecute() {
             setTextView();
             setRecapPrice();
+        }
+
+        @Override
+        public void setFailPostExecute() {
+
         }
     }
 
@@ -226,6 +236,7 @@ orderFood = new OrderFood();
                 if(orderFood.getRecapQty()>0) {
                     orderFood.menu = restaurant.menu;
                     orderFood.pickupPosition = restaurant.location;
+                    orderFood.pickupAddress = restaurant.address;
                     Intent intent = new Intent(RestaurantActivity.this, MakeOrderFoodActivity.class);
                     intent.putExtra("order", orderFood);
                     startActivityForResult(intent, 1);
@@ -269,6 +280,8 @@ orderFood = new OrderFood();
     private void openListItem(int j)
     {
         orderFood.menu=restaurant.menu;
+        orderFood.pickupAddress=restaurant.address;
+        orderFood.pickupPosition=restaurant.location;
         Intent intent = new Intent(RestaurantActivity.this,ListItemActivity.class);
         intent.putExtra("order",orderFood);
         intent.putExtra("index",j);
